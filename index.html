@@ -4,8 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Fotus Agro - Expedições</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Babel para compilar o React JSX direto no navegador -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Mapa de Importações para pacotes modernos (ES Modules) -->
     <script type="importmap">
     {
         "imports": {
@@ -18,66 +24,62 @@
         }
     }
     </script>
+    
     <style>
+        /* Estilos personalizados para barra de rolagem */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes scale-up { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-        @keyframes slide-in { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
-        @keyframes slide-up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade-in { animation: fade-in 0.2s ease-out; }
-        .animate-scale-up { animation: scale-up 0.2s ease-out; }
-        .animate-slide-in { animation: slide-in 0.3s ease-out; }
-        .animate-slide-up { animation: slide-up 0.3s ease-out; }
     </style>
 </head>
 <body class="bg-gray-50 text-slate-800">
+
     <div id="root"></div>
 
+    <!-- Aplicação React -->
     <script type="text/babel" data-type="module">
         import React, { useState, useEffect, useMemo } from 'react';
         import { createRoot } from 'react-dom/client';
-        import {
-            Truck, Calendar, CheckSquare, Users, BarChart3, MapPin,
-            Plus, Search, Filter, ChevronRight, Save, X, Menu,
-            LogOut, LayoutDashboard, Briefcase, ClipboardList,
-            MoreVertical, ArrowLeft, Send, CheckCircle2, Clock,
+        import { 
+            Truck, Calendar, CheckSquare, Users, BarChart3, MapPin, 
+            Plus, Search, Filter, ChevronRight, Save, X, Menu, 
+            LogOut, LayoutDashboard, Briefcase, ClipboardList, 
+            MoreVertical, ArrowLeft, Send, CheckCircle2, Clock, 
             AlertTriangle, FileText, Download, Settings, Phone, Mail,
             Loader2, Trash2, Edit2, ExternalLink, UserCircle, ArrowRight
         } from 'lucide-react';
 
         import { initializeApp } from 'firebase/app';
-        import {
-            getAuth, signInWithEmailAndPassword, signOut,
-            onAuthStateChanged
-        } from 'firebase/auth';
-        import {
-            getFirestore, collection, addDoc, query, where,
-            getDocs, doc, updateDoc, deleteDoc, onSnapshot, writeBatch,
-            serverTimestamp, orderBy, getDoc
+        import { getAuth, signInWithEmailAndPassword, signInWithCustomToken, onAuthStateChanged, signOut } from 'firebase/auth';
+        import { 
+            getFirestore, collection, addDoc, query, where, 
+            getDocs, getDoc, doc, updateDoc, deleteDoc, onSnapshot, writeBatch,
+            serverTimestamp, orderBy
         } from 'firebase/firestore';
 
         // ==========================================
-        // 🔴 CONFIGURAÇÃO DO FIREBASE
-        // Cole aqui as credenciais do seu projeto "expedicao-fotus-agro"
-        // Console Firebase > Configurações do Projeto > Seus apps > SDK config
+        // 🔴 ATENÇÃO: CONFIGURAÇÃO DO FIREBASE AQUI
+        // Crie um projeto no Firebase, ative o Firestore Database e o Authentication (Login Anônimo).
+        // Cole suas credenciais no objeto abaixo:
         // ==========================================
-        const firebaseConfig = {
-            apiKey: "COLE_SUA_API_KEY_AQUI",
+        const fallbackConfig = {
+            apiKey: "AIzaSyAGrO_8HAT8P9sKupu1nI5OMXOVJYvJN9M",
             authDomain: "expedicao-fotus-agro.firebaseapp.com",
             projectId: "expedicao-fotus-agro",
-            storageBucket: "expedicao-fotus-agro.appspot.com",
-            messagingSenderId: "COLE_SEU_SENDER_ID",
-            appId: "COLE_SEU_APP_ID"
+            storageBucket: "expedicao-fotus-agro.firebasestorage.app",
+            messagingSenderId: "837961978108",
+            appId: "1:837961978108:web:24e40f8f57097fc0c88779"
         };
+
+        // Usa a configuração do ambiente de visualização se existir, caso contrário usa o fallback
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : fallbackConfig;
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const appId = 'fotus-agro-app';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'expedicao-fotus-agro';
 
         // --- UTILS ---
         const formatDate = (dateString) => {
@@ -116,12 +118,18 @@
         const Modal = ({ title, children, onClose, footer }) => (
             <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
                 <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden animate-scale-up">
-                    <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                        <h3 className="font-bold text-lg text-gray-800">{title}</h3>
-                        <button onClick={onClose} className="p-1 hover:bg-gray-200 rounded-full transition-colors"><X size={20} className="text-gray-500"/></button>
+                <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                    <h3 className="font-bold text-lg text-gray-800">{title}</h3>
+                    <button onClick={onClose} className="p-1 hover:bg-gray-200 rounded-full transition-colors"><X size={20} className="text-gray-500"/></button>
+                </div>
+                <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
+                    {children}
+                </div>
+                {footer && (
+                    <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
+                    {footer}
                     </div>
-                    <div className="p-6 overflow-y-auto custom-scrollbar flex-1">{children}</div>
-                    {footer && <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">{footer}</div>}
+                )}
                 </div>
             </div>
         );
@@ -133,12 +141,21 @@
                 danger: "bg-red-50 text-red-600 hover:bg-red-100 border border-red-200",
                 ghost: "text-emerald-600 hover:bg-emerald-50",
             };
-            const sizes = { sm: "px-3 py-1.5 text-sm", md: "px-4 py-2.5", lg: "px-6 py-3 text-lg" };
+            const sizes = {
+                sm: "px-3 py-1.5 text-sm",
+                md: "px-4 py-2.5",
+                lg: "px-6 py-3 text-lg"
+            };
+            
             return (
-                <button type={type} disabled={disabled} onClick={onClick}
-                    className={`${sizes[size]} rounded-lg font-medium transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${variants[variant]} ${className}`}>
-                    {Icon && <Icon size={size === 'sm' ? 16 : 18} />}
-                    {children}
+                <button 
+                    type={type}
+                    disabled={disabled}
+                    onClick={onClick}
+                    className={`${sizes[size]} rounded-lg font-medium transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed ${variants[variant]} ${className}`}
+                >
+                {Icon && <Icon size={size === 'sm' ? 16 : 18} />}
+                {children}
                 </button>
             );
         };
@@ -146,7 +163,10 @@
         const Input = ({ label, ...props }) => (
             <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
-                <input className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-sm" {...props} />
+                <input 
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-sm"
+                    {...props}
+                />
             </div>
         );
 
@@ -154,8 +174,11 @@
             <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
                 <div className="relative">
-                    <select className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-sm appearance-none bg-white" {...props}>
-                        {children}
+                    <select 
+                        className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-sm appearance-none bg-white"
+                        {...props}
+                    >
+                    {children}
                     </select>
                     <ChevronRight className="absolute right-3 top-3 text-gray-400 rotate-90 pointer-events-none" size={16}/>
                 </div>
@@ -166,11 +189,12 @@
         function App() {
             const [user, setUser] = useState(null);
             const [userProfile, setUserProfile] = useState(null);
-            const [view, setView] = useState('loading');
+            const [view, setView] = useState('login'); 
             const [loading, setLoading] = useState(true);
             const [selectedExpeditionId, setSelectedExpeditionId] = useState(null);
             const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
             const [notification, setNotification] = useState(null);
+
             const [expeditions, setExpeditions] = useState([]);
             const [companies, setCompanies] = useState([]);
             const [actions, setActions] = useState([]);
@@ -178,44 +202,27 @@
 
             const showToast = (message, type = 'success') => {
                 setNotification({ message, type });
-                setTimeout(() => setNotification(null), 3500);
-            };
-
-            // ✅ CORRIGIDO: busca o perfil e a role do usuário no Firestore
-            const checkUserProfile = async (currentUser) => {
-                try {
-                    const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-                    if (userDoc.exists()) {
-                        const data = userDoc.data();
-                        setUserProfile({
-                            uid: currentUser.uid,
-                            name: data.name || currentUser.email,
-                            email: currentUser.email,
-                            role: data.role // 'gerente' ou 'executivo' — vem do Firestore
-                        });
-                        setView('dashboard');
-                    } else {
-                        // Usuário autenticado mas sem cadastro no sistema
-                        await signOut(auth);
-                        alert("Acesso não autorizado. Seu usuário ainda não foi cadastrado no sistema. Contate o administrador.");
-                        setView('login');
-                    }
-                } catch (e) {
-                    console.error("Erro ao buscar perfil:", e);
-                    alert("Erro ao carregar perfil. Verifique sua conexão.");
-                    setView('login');
-                } finally {
-                    setLoading(false);
-                }
+                setTimeout(() => setNotification(null), 3000);
             };
 
             useEffect(() => {
+                const initAuth = async () => {
+                    try {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                        }
+                        // Sem token especial: aguarda o usuário fazer login manualmente
+                    } catch (e) {
+                        console.error("Erro no Auth inicial", e);
+                    }
+                };
+                initAuth();
+
                 const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
                     setUser(currentUser);
                     if (currentUser) {
                         checkUserProfile(currentUser);
                     } else {
-                        setUserProfile(null);
                         setView('login');
                         setLoading(false);
                     }
@@ -223,160 +230,177 @@
                 return () => unsubscribe();
             }, []);
 
-            useEffect(() => {
-                if (!user || !userProfile) return;
-
-                const unsubExp = onSnapshot(
-                    query(collection(db, 'artifacts', appId, 'public', 'data', 'expeditions'), orderBy('createdAt', 'desc')),
-                    (snap) => setExpeditions(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
-                    (err) => {
-                        console.warn("Índice necessário ou erro no Firestore:", err.message);
-                        // Fallback sem ordenação
-                        const unsub2 = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'expeditions'),
-                            (snap) => setExpeditions(snap.docs.map(d => ({ id: d.id, ...d.data() })))
-                        );
-                        return () => unsub2();
+            const checkUserProfile = async (currentUser) => {
+                try {
+                    const profileRef = doc(db, 'users', currentUser.uid);
+                    const profileSnap = await getDoc(profileRef);
+                    if (profileSnap.exists()) {
+                        const profileData = profileSnap.data();
+                        setUserProfile({
+                            uid: currentUser.uid,
+                            name: profileData.name || currentUser.email,
+                            email: currentUser.email,
+                            role: profileData.role || 'executivo'
+                        });
+                        setView('dashboard');
+                    } else {
+                        // Perfil não cadastrado no Firestore
+                        await signOut(auth);
+                        alert("Usuário não cadastrado no sistema. Contate o administrador da Fotus Agro.");
                     }
+                } catch(e) {
+                    console.error("Erro ao buscar perfil", e);
+                    await signOut(auth);
+                    alert("Erro ao carregar perfil. Verifique a conexão e tente novamente.");
+                }
+                setLoading(false);
+            };
+
+            useEffect(() => {
+                if (!user) return;
+
+                const unsubExp = onSnapshot(query(collection(db, 'artifacts', appId, 'public', 'data', 'expeditions'), orderBy('createdAt', 'desc')), 
+                    (snap) => setExpeditions(snap.docs.map(d => ({ id: d.id, ...d.data() }))), 
+                    err => console.log("Indexes might be needed", err) 
                 );
-                const unsubComp = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'companies'),
+
+                const unsubComp = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'companies'), 
                     (snap) => setCompanies(snap.docs.map(d => ({ id: d.id, ...d.data() })))
                 );
-                const unsubAct = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'actions'),
+
+                const unsubAct = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'actions'), 
                     (snap) => setActions(snap.docs.map(d => ({ id: d.id, ...d.data() })))
                 );
-                const unsubVis = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'visits'),
+
+                const unsubVis = onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'visits'), 
                     (snap) => setVisits(snap.docs.map(d => ({ id: d.id, ...d.data() })))
                 );
+
                 return () => { unsubExp(); unsubComp(); unsubAct(); unsubVis(); };
-            }, [user, userProfile]);
+            }, [user]);
 
             const logout = async () => {
                 await signOut(auth);
                 setUserProfile(null);
-                setExpeditions([]); setCompanies([]); setActions([]); setVisits([]);
             };
 
-            if (loading || view === 'loading') return (
-                <div className="flex h-screen items-center justify-center bg-emerald-50 text-emerald-800 gap-3 flex-col">
-                    <Loader2 className="animate-spin" size={36}/>
-                    <p className="text-sm font-medium">Carregando Fotus Agro...</p>
-                </div>
-            );
+            if (loading) return <div className="flex h-screen items-center justify-center bg-emerald-50 text-emerald-800 gap-2"><Loader2 className="animate-spin"/> Carregando...</div>;
 
-            if (view === 'login') return <LoginScreen />;
+            if (view === 'login') return <LoginScreen checkUserProfile={checkUserProfile} />;
 
             return (
                 <div className="flex h-screen bg-gray-50 text-slate-800 font-sans overflow-hidden">
-                    {notification && (
-                        <div className={`fixed top-4 right-4 z-[100] px-4 py-3 rounded-lg shadow-lg text-white text-sm font-medium animate-slide-in flex items-center gap-2 ${notification.type === 'error' ? 'bg-red-500' : 'bg-emerald-600'}`}>
-                            {notification.type === 'error' ? <AlertTriangle size={18}/> : <CheckCircle2 size={18}/>}
-                            {notification.message}
+                {notification && (
+                    <div className={`fixed top-4 right-4 z-[100] px-4 py-3 rounded-lg shadow-lg text-white text-sm font-medium animate-slide-in flex items-center gap-2 ${notification.type === 'error' ? 'bg-red-500' : 'bg-emerald-600'}`}>
+                    {notification.type === 'error' ? <AlertTriangle size={18}/> : <CheckCircle2 size={18}/>}
+                    {notification.message}
+                    </div>
+                )}
+
+                {/* Sidebar Desktop */}
+                <aside className="hidden md:flex flex-col w-64 bg-emerald-900 text-white shadow-xl">
+                    <div className="p-6">
+                    <h1 className="text-2xl font-bold tracking-tight">Fotus Agro</h1>
+                    <p className="text-emerald-300 text-xs mt-1">Controlador de Expedições</p>
+                    </div>
+                    <nav className="flex-1 px-3 space-y-1">
+                    <NavButton active={view === 'dashboard'} icon={LayoutDashboard} label="Dashboard" onClick={() => setView('dashboard')} />
+                    <NavButton active={view === 'expeditions' || view === 'expedition-detail'} icon={Truck} label="Expedições" onClick={() => { setSelectedExpeditionId(null); setView('expeditions'); }} />
+                    <NavButton active={view === 'actions'} icon={CheckSquare} label="Plano de Ação" onClick={() => setView('actions')} />
+                    <NavButton active={view === 'companies'} icon={Briefcase} label="Empresas" onClick={() => setView('companies')} />
+                    </nav>
+                    <div className="p-4 bg-emerald-950/50">
+                    <div className="flex items-center gap-3 mb-3">
+                        <div className="w-9 h-9 rounded-full bg-emerald-500 flex items-center justify-center text-sm font-bold border-2 border-emerald-400">
+                        {userProfile?.name?.charAt(0)}
                         </div>
+                        <div className="overflow-hidden">
+                        <p className="text-sm font-medium truncate">{userProfile?.name}</p>
+                        <p className="text-xs text-emerald-400 capitalize">{userProfile?.role}</p>
+                        </div>
+                    </div>
+                    <button onClick={logout} className="flex items-center gap-2 text-sm text-emerald-300 hover:text-white w-full transition-colors">
+                        <LogOut size={16} /> Sair
+                    </button>
+                    </div>
+                </aside>
+
+                {/* Main Content */}
+                <div className="flex-1 flex flex-col h-full overflow-hidden relative">
+                    <header className="md:hidden flex items-center justify-between p-4 bg-emerald-800 text-white shadow-md z-20">
+                    <h1 className="font-bold text-lg flex items-center gap-2"><Truck size={20}/> Fotus Agro</h1>
+                    <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-1 active:bg-emerald-700 rounded">
+                        {mobileMenuOpen ? <X /> : <Menu />}
+                    </button>
+                    </header>
+
+                    {mobileMenuOpen && (
+                    <div className="absolute inset-0 z-10 bg-emerald-900/95 text-white pt-20 px-6 flex flex-col gap-4 md:hidden backdrop-blur-sm animate-fade-in">
+                        <NavButton mobile active={view === 'dashboard'} icon={LayoutDashboard} label="Dashboard" onClick={() => { setView('dashboard'); setMobileMenuOpen(false); }} />
+                        <NavButton mobile active={view === 'expeditions'} icon={Truck} label="Expedições" onClick={() => { setSelectedExpeditionId(null); setView('expeditions'); setMobileMenuOpen(false); }} />
+                        <NavButton mobile active={view === 'actions'} icon={CheckSquare} label="Plano de Ação" onClick={() => { setView('actions'); setMobileMenuOpen(false); }} />
+                        <NavButton mobile active={view === 'companies'} icon={Briefcase} label="Empresas" onClick={() => { setView('companies'); setMobileMenuOpen(false); }} />
+                        <hr className="border-emerald-700 my-2" />
+                        <button onClick={logout} className="flex items-center gap-3 text-lg p-3 text-emerald-200">
+                        <LogOut /> Sair
+                        </button>
+                    </div>
                     )}
 
-                    {/* Sidebar Desktop */}
-                    <aside className="hidden md:flex flex-col w-64 bg-emerald-900 text-white shadow-xl">
-                        <div className="p-6">
-                            <h1 className="text-2xl font-bold tracking-tight">Fotus Agro</h1>
-                            <p className="text-emerald-300 text-xs mt-1">Controlador de Expedições</p>
-                        </div>
-                        <nav className="flex-1 px-3 space-y-1">
-                            <NavButton active={view === 'dashboard'} icon={LayoutDashboard} label="Dashboard" onClick={() => setView('dashboard')} />
-                            <NavButton active={view === 'expeditions' || view === 'expedition-detail'} icon={Truck} label="Expedições" onClick={() => { setSelectedExpeditionId(null); setView('expeditions'); }} />
-                            <NavButton active={view === 'actions'} icon={CheckSquare} label="Plano de Ação" onClick={() => setView('actions')} />
-                            <NavButton active={view === 'companies'} icon={Briefcase} label="Empresas" onClick={() => setView('companies')} />
-                        </nav>
-                        <div className="p-4 bg-emerald-950/50">
-                            <div className="flex items-center gap-3 mb-3">
-                                <div className="w-9 h-9 rounded-full bg-emerald-500 flex items-center justify-center text-sm font-bold border-2 border-emerald-400">
-                                    {userProfile?.name?.charAt(0)}
-                                </div>
-                                <div className="overflow-hidden">
-                                    <p className="text-sm font-medium truncate">{userProfile?.name}</p>
-                                    <p className="text-xs text-emerald-400 capitalize">{userProfile?.role}</p>
-                                </div>
-                            </div>
-                            <button onClick={logout} className="flex items-center gap-2 text-sm text-emerald-300 hover:text-white w-full transition-colors">
-                                <LogOut size={16} /> Sair
-                            </button>
-                        </div>
-                    </aside>
-
-                    {/* Main Content */}
-                    <div className="flex-1 flex flex-col h-full overflow-hidden relative">
-                        <header className="md:hidden flex items-center justify-between p-4 bg-emerald-800 text-white shadow-md z-20">
-                            <h1 className="font-bold text-lg flex items-center gap-2"><Truck size={20}/> Fotus Agro</h1>
-                            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-1 active:bg-emerald-700 rounded">
-                                {mobileMenuOpen ? <X /> : <Menu />}
-                            </button>
-                        </header>
-
-                        {mobileMenuOpen && (
-                            <div className="absolute inset-0 z-10 bg-emerald-900/95 text-white pt-20 px-6 flex flex-col gap-4 md:hidden backdrop-blur-sm animate-fade-in">
-                                <NavButton mobile active={view === 'dashboard'} icon={LayoutDashboard} label="Dashboard" onClick={() => { setView('dashboard'); setMobileMenuOpen(false); }} />
-                                <NavButton mobile active={view === 'expeditions'} icon={Truck} label="Expedições" onClick={() => { setSelectedExpeditionId(null); setView('expeditions'); setMobileMenuOpen(false); }} />
-                                <NavButton mobile active={view === 'actions'} icon={CheckSquare} label="Plano de Ação" onClick={() => { setView('actions'); setMobileMenuOpen(false); }} />
-                                <NavButton mobile active={view === 'companies'} icon={Briefcase} label="Empresas" onClick={() => { setView('companies'); setMobileMenuOpen(false); }} />
-                                <hr className="border-emerald-700 my-2" />
-                                <div className="flex items-center gap-3 px-3">
-                                    <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center font-bold">{userProfile?.name?.charAt(0)}</div>
-                                    <div>
-                                        <p className="font-medium">{userProfile?.name}</p>
-                                        <p className="text-xs text-emerald-300 capitalize">{userProfile?.role}</p>
-                                    </div>
-                                </div>
-                                <button onClick={logout} className="flex items-center gap-3 text-lg p-3 text-emerald-200">
-                                    <LogOut /> Sair
-                                </button>
-                            </div>
-                        )}
-
-                        <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-gray-50 pb-24 md:pb-8">
-                            {view === 'dashboard' && <Dashboard userProfile={userProfile} expeditions={expeditions} actions={actions} setView={setView} />}
-                            {view === 'expeditions' && (
-                                <ExpeditionList
-                                    expeditions={expeditions} userProfile={userProfile} visits={visits}
-                                    onSelect={(id) => { setSelectedExpeditionId(id); setView('expedition-detail'); }}
-                                    db={db} appId={appId} user={user} companies={companies} showToast={showToast}
-                                />
-                            )}
-                            {view === 'expedition-detail' && selectedExpeditionId && (
-                                <ExpeditionDetail
-                                    expeditionId={selectedExpeditionId} expeditions={expeditions}
-                                    visits={visits.filter(v => v.expeditionId === selectedExpeditionId)}
-                                    actions={actions.filter(a => a.expeditionId === selectedExpeditionId)}
-                                    companies={companies} onBack={() => setView('expeditions')}
-                                    db={db} appId={appId} user={user} userProfile={userProfile} showToast={showToast}
-                                />
-                            )}
-                            {view === 'actions' && (
-                                <ActionPlanGlobal
-                                    actions={actions} userProfile={userProfile}
-                                    db={db} appId={appId} companies={companies} user={user} showToast={showToast}
-                                />
-                            )}
-                            {view === 'companies' && (
-                                <CompanyList companies={companies} db={db} appId={appId} showToast={showToast} userProfile={userProfile} />
-                            )}
-                        </main>
-                    </div>
+                    <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-gray-50 pb-24 md:pb-8">
+                    {view === 'dashboard' && (
+                        <Dashboard userProfile={userProfile} expeditions={expeditions} actions={actions} setView={setView} />
+                    )}
+                    {view === 'expeditions' && (
+                        <ExpeditionList 
+                        expeditions={expeditions} userProfile={userProfile} visits={visits}
+                        onSelect={(id) => { setSelectedExpeditionId(id); setView('expedition-detail'); }}
+                        db={db} appId={appId} user={user} companies={companies} showToast={showToast}
+                        />
+                    )}
+                    {view === 'expedition-detail' && selectedExpeditionId && (
+                        <ExpeditionDetail 
+                        expeditionId={selectedExpeditionId} expeditions={expeditions}
+                        visits={visits.filter(v => v.expeditionId === selectedExpeditionId)}
+                        actions={actions.filter(a => a.expeditionId === selectedExpeditionId)}
+                        companies={companies} onBack={() => setView('expeditions')}
+                        db={db} appId={appId} user={user} userProfile={userProfile} showToast={showToast}
+                        />
+                    )}
+                    {view === 'actions' && (
+                        <ActionPlanGlobal 
+                        actions={actions} userProfile={userProfile}
+                        db={db} appId={appId} companies={companies} user={user} showToast={showToast}
+                        />
+                    )}
+                    {view === 'companies' && (
+                        <CompanyList 
+                        companies={companies} db={db} appId={appId} 
+                        showToast={showToast} userProfile={userProfile} 
+                        />
+                    )}
+                    </main>
+                </div>
                 </div>
             );
         }
 
-        // --- NAV BUTTON ---
+        // --- SUB-COMPONENTS ---
         function NavButton({ icon: Icon, label, active, onClick, mobile }) {
             return (
-                <button onClick={onClick}
-                    className={`flex items-center gap-3 w-full p-3 rounded-lg transition-all duration-200 ${active ? 'bg-emerald-800 text-white font-medium shadow-inner' : 'text-emerald-100 hover:bg-emerald-800/40 hover:text-white'} ${mobile ? 'text-lg' : 'text-sm'}`}>
-                    <Icon size={mobile ? 24 : 18} />
-                    {label}
+                <button 
+                onClick={onClick}
+                className={`flex items-center gap-3 w-full p-3 rounded-lg transition-all duration-200 ${
+                    active ? 'bg-emerald-800 text-white font-medium shadow-inner' : 'text-emerald-100 hover:bg-emerald-800/40 hover:text-white'
+                } ${mobile ? 'text-lg' : 'text-sm'}`}
+                >
+                <Icon size={mobile ? 24 : 18} />
+                {label}
                 </button>
             );
         }
 
-        // --- ✅ TELA DE LOGIN CORRIGIDA: usa email/senha real ---
-        function LoginScreen() {
+        function LoginScreen({ checkUserProfile }) {
             const [email, setEmail] = useState('');
             const [password, setPassword] = useState('');
             const [isLoading, setIsLoading] = useState(false);
@@ -384,150 +408,142 @@
 
             const handleAuth = async (e) => {
                 e.preventDefault();
+                setErrorMsg('');
                 if (!email || !password) { setErrorMsg("Preencha o e-mail e a senha."); return; }
                 setIsLoading(true);
-                setErrorMsg('');
                 try {
                     await signInWithEmailAndPassword(auth, email, password);
-                    // onAuthStateChanged no App cuida do resto
+                    // onAuthStateChanged no App vai chamar checkUserProfile automaticamente
                 } catch (error) {
-                    const msg = error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found'
-                        ? "E-mail ou senha incorretos."
-                        : error.code === 'auth/too-many-requests'
-                        ? "Muitas tentativas. Aguarde alguns minutos."
-                        : "Erro no login. Tente novamente.";
-                    setErrorMsg(msg);
+                    const msgs = {
+                        'auth/user-not-found': 'Usuário não encontrado. Contate o administrador.',
+                        'auth/wrong-password': 'Senha incorreta. Tente novamente.',
+                        'auth/invalid-email': 'Formato de e-mail inválido.',
+                        'auth/invalid-credential': 'E-mail ou senha incorretos.',
+                        'auth/too-many-requests': 'Muitas tentativas. Aguarde alguns minutos.',
+                    };
+                    setErrorMsg(msgs[error.code] || "Erro no login: " + error.message);
                     setIsLoading(false);
                 }
             };
 
             return (
                 <div className="min-h-screen bg-gradient-to-br from-emerald-900 to-emerald-800 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md animate-scale-up">
-                        <div className="text-center mb-8">
-                            <div className="bg-emerald-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-                                <Truck className="text-emerald-600" size={32} />
-                            </div>
-                            <h1 className="text-3xl font-bold text-gray-800 tracking-tight">Fotus Agro</h1>
-                            <p className="text-gray-500 mt-1">Plataforma de Expedições</p>
-                        </div>
-                        <form onSubmit={handleAuth} className="space-y-4">
-                            <Input label="E-mail Corporativo" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="nome@fotusagro.com" autoComplete="email" />
-                            <Input label="Senha" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" autoComplete="current-password" />
-                            {errorMsg && (
-                                <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm p-3 rounded-lg">
-                                    <AlertTriangle size={16} className="shrink-0"/> {errorMsg}
-                                </div>
-                            )}
-                            <Button type="submit" className="w-full py-3 text-lg" disabled={isLoading}>
-                                {isLoading ? <><Loader2 className="animate-spin" size={18}/> Entrando...</> : 'Acessar Sistema'}
-                            </Button>
-                        </form>
-                        <p className="mt-6 text-center text-xs text-gray-400">Acesso restrito à equipe Fotus Agro.</p>
+                <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md animate-scale-up">
+                    <div className="text-center mb-8">
+                    <div className="bg-emerald-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+                        <Truck className="text-emerald-600" size={32} />
                     </div>
+                    <h1 className="text-3xl font-bold text-gray-800 tracking-tight">Fotus Agro</h1>
+                    <p className="text-gray-500 mt-1">Plataforma de Expedições</p>
+                    </div>
+                    <form onSubmit={handleAuth} className="space-y-4">
+                    <Input label="E-mail Corporativo" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="nome@fotusagro.com.br" />
+                    <Input label="Senha" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" />
+                    {errorMsg && (
+                        <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg flex items-center gap-2">
+                            <AlertTriangle size={16} className="shrink-0"/> {errorMsg}
+                        </div>
+                    )}
+                    <Button type="submit" className="w-full py-3 text-lg" disabled={isLoading}>
+                        {isLoading ? <><Loader2 size={18} className="animate-spin"/> Entrando...</> : 'Acessar Sistema'}
+                    </Button>
+                    </form>
+                </div>
                 </div>
             );
         }
 
-        // --- DASHBOARD ---
         function Dashboard({ userProfile, expeditions, actions, setView }) {
             const myExpeditions = expeditions.filter(e => userProfile.role === 'gerente' || e.userId === userProfile.uid);
             const myActions = actions.filter(a => userProfile.role === 'gerente' || a.responsibleId === userProfile.uid);
+            
             const pendingActions = myActions.filter(a => a.status === 'aberta' || a.status === 'atrasada').length;
             const completedActions = myActions.filter(a => a.status === 'concluida').length;
             const activeExpeditions = myExpeditions.filter(e => e.status === 'em_andamento').length;
-            const pendingApproval = userProfile.role === 'gerente' ? expeditions.filter(e => e.status === 'aguardando_aprovacao').length : 0;
 
             return (
                 <div className="space-y-6 animate-fade-in">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h2 className="text-2xl font-bold text-gray-800">Olá, {userProfile.name.split(' ')[0]}</h2>
-                        <p className="text-gray-500 text-sm capitalize">Bem-vindo, <span className="font-medium text-emerald-700">{userProfile.role}</span>.</p>
+                    <h2 className="text-2xl font-bold text-gray-800">Olá, {userProfile.name.split(' ')[0]}</h2>
+                    <p className="text-gray-500 text-sm">Bem-vindo ao painel de controle.</p>
                     </div>
+                </div>
 
-                    {pendingApproval > 0 && (
-                        <div onClick={() => setView('expeditions')} className="cursor-pointer bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center gap-3 hover:bg-amber-100 transition-colors">
-                            <AlertTriangle size={22} className="text-amber-500 shrink-0"/>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {[
+                    { label: "Em Campo", value: activeExpeditions, icon: Truck, color: "text-blue-600", bg: "bg-blue-50" },
+                    { label: "Ações Pendentes", value: pendingActions, icon: AlertTriangle, color: "text-amber-600", bg: "bg-amber-50" },
+                    { label: "Concluídas", value: completedActions, icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50" },
+                    { label: "Eficiência", value: `${myActions.length > 0 ? Math.round((completedActions / myActions.length) * 100) : 0}%`, icon: BarChart3, color: "text-purple-600", bg: "bg-purple-50" }
+                    ].map((stat, i) => (
+                    <div key={i} className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center text-center hover:shadow-md transition-shadow">
+                        <div className={`p-3 rounded-full mb-3 ${stat.bg}`}><stat.icon className={stat.color} size={24} /></div>
+                        <span className="text-2xl font-bold text-gray-800">{stat.value}</span>
+                        <span className="text-gray-500 text-xs font-medium uppercase tracking-wide mt-1">{stat.label}</span>
+                    </div>
+                    ))}
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col">
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className="font-bold text-gray-800 flex items-center gap-2"><Truck size={18} className="text-gray-400"/> Expedições Ativas</h3>
+                        <button onClick={() => setView('expeditions')} className="text-sm text-emerald-600 hover:text-emerald-700 font-medium">Ver todas</button>
+                    </div>
+                    <div className="space-y-4 flex-1">
+                        {myExpeditions.filter(e => e.status === 'em_andamento').slice(0, 3).map(exp => (
+                        <div key={exp.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-100 hover:border-emerald-200 transition-colors">
                             <div>
-                                <p className="font-bold text-amber-800">{pendingApproval} expedição{pendingApproval > 1 ? 'ões' : ''} aguardando sua aprovação</p>
-                                <p className="text-xs text-amber-600">Clique para revisar</p>
+                            <p className="font-bold text-gray-800">{exp.title}</p>
+                            <p className="text-xs text-gray-500 mt-1 flex items-center gap-2">
+                                <MapPin size={12}/> {exp.region}
+                                <span className="w-1 h-1 bg-gray-300 rounded-full"/>
+                                <Calendar size={12}/> {formatDate(exp.startDate)}
+                            </p>
                             </div>
-                            <ChevronRight className="ml-auto text-amber-400"/>
+                            <div className={`px-2 py-1 rounded text-xs font-medium border ${getStatusColor(exp.status, 'expedition')}`}>
+                            {exp.status.replace('_', ' ')}
+                            </div>
                         </div>
-                    )}
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {[
-                            { label: "Em Campo", value: activeExpeditions, icon: Truck, color: "text-blue-600", bg: "bg-blue-50" },
-                            { label: "Ações Pendentes", value: pendingActions, icon: AlertTriangle, color: "text-amber-600", bg: "bg-amber-50" },
-                            { label: "Ações Concluídas", value: completedActions, icon: CheckCircle2, color: "text-emerald-600", bg: "bg-emerald-50" },
-                            { label: "Eficiência", value: `${myActions.length > 0 ? Math.round((completedActions / myActions.length) * 100) : 0}%`, icon: BarChart3, color: "text-purple-600", bg: "bg-purple-50" }
-                        ].map((stat, i) => (
-                            <div key={i} className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center text-center hover:shadow-md transition-shadow">
-                                <div className={`p-3 rounded-full mb-3 ${stat.bg}`}><stat.icon className={stat.color} size={24} /></div>
-                                <span className="text-2xl font-bold text-gray-800">{stat.value}</span>
-                                <span className="text-gray-500 text-xs font-medium uppercase tracking-wide mt-1">{stat.label}</span>
-                            </div>
                         ))}
+                        {myExpeditions.filter(e => e.status === 'em_andamento').length === 0 && <div className="text-center py-8 text-gray-400 text-sm">Nenhuma expedição ativa.</div>}
+                    </div>
                     </div>
 
-                    <div className="grid md:grid-cols-2 gap-6">
-                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col">
-                            <div className="flex justify-between items-center mb-6">
-                                <h3 className="font-bold text-gray-800 flex items-center gap-2"><Truck size={18} className="text-gray-400"/> Expedições Ativas</h3>
-                                <button onClick={() => setView('expeditions')} className="text-sm text-emerald-600 hover:text-emerald-700 font-medium">Ver todas</button>
-                            </div>
-                            <div className="space-y-4 flex-1">
-                                {myExpeditions.filter(e => e.status === 'em_andamento').slice(0, 3).map(exp => (
-                                    <div key={exp.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-100 hover:border-emerald-200 transition-colors">
-                                        <div>
-                                            <p className="font-bold text-gray-800">{exp.title}</p>
-                                            <p className="text-xs text-gray-500 mt-1 flex items-center gap-2">
-                                                <MapPin size={12}/> {exp.region}
-                                                <span className="w-1 h-1 bg-gray-300 rounded-full"/>
-                                                <Calendar size={12}/> {formatDate(exp.startDate)}
-                                            </p>
-                                        </div>
-                                        <div className={`px-2 py-1 rounded text-xs font-medium border ${getStatusColor(exp.status, 'expedition')}`}>
-                                            {exp.status.replace('_', ' ')}
-                                        </div>
-                                    </div>
-                                ))}
-                                {myExpeditions.filter(e => e.status === 'em_andamento').length === 0 && <div className="text-center py-8 text-gray-400 text-sm">Nenhuma expedição ativa.</div>}
-                            </div>
-                        </div>
-
-                        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col">
-                            <div className="flex justify-between items-center mb-6">
-                                <h3 className="font-bold text-gray-800 flex items-center gap-2"><CheckSquare size={18} className="text-gray-400"/> Próximas Ações</h3>
-                                <button onClick={() => setView('actions')} className="text-sm text-emerald-600 hover:text-emerald-700 font-medium">Ver todas</button>
-                            </div>
-                            <div className="space-y-3 flex-1">
-                                {myActions.filter(a => a.status !== 'concluida').slice(0, 4).map(action => (
-                                    <div key={action.id} className="flex items-start gap-3 p-3 bg-white border border-gray-100 rounded-lg hover:shadow-sm transition-shadow">
-                                        <div className={`mt-1.5 w-2.5 h-2.5 rounded-full flex-shrink-0 ${action.priority === 'alta' ? 'bg-red-500' : action.priority === 'media' ? 'bg-amber-400' : 'bg-blue-400'}`} />
-                                        <div className="flex-1 min-w-0">
-                                            <p className="font-medium text-sm text-gray-900 truncate">{action.title}</p>
-                                            <p className="text-xs text-gray-500 truncate">{action.companyName}</p>
-                                        </div>
-                                        <div className="text-xs font-medium text-gray-400 whitespace-nowrap bg-gray-50 px-2 py-1 rounded">{formatDate(action.dueDate)}</div>
-                                    </div>
-                                ))}
-                                {myActions.filter(a => a.status !== 'concluida').length === 0 && <div className="text-center py-8 text-gray-400 text-sm">Tudo em dia!</div>}
-                            </div>
-                        </div>
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col">
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className="font-bold text-gray-800 flex items-center gap-2"><CheckSquare size={18} className="text-gray-400"/> Próximas Ações</h3>
+                        <button onClick={() => setView('actions')} className="text-sm text-emerald-600 hover:text-emerald-700 font-medium">Ver todas</button>
                     </div>
+                    <div className="space-y-3 flex-1">
+                        {myActions.filter(a => a.status !== 'concluida').slice(0, 4).map(action => (
+                        <div key={action.id} className="flex items-start gap-3 p-3 bg-white border border-gray-100 rounded-lg hover:shadow-sm transition-shadow">
+                            <div className={`mt-1.5 w-2.5 h-2.5 rounded-full flex-shrink-0 ${action.priority === 'alta' ? 'bg-red-500' : action.priority === 'media' ? 'bg-amber-400' : 'bg-blue-400'}`} />
+                            <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm text-gray-900 truncate">{action.title}</p>
+                            <p className="text-xs text-gray-500 truncate">{action.companyName}</p>
+                            </div>
+                            <div className="text-xs font-medium text-gray-400 whitespace-nowrap bg-gray-50 px-2 py-1 rounded">
+                            {formatDate(action.dueDate)}
+                            </div>
+                        </div>
+                        ))}
+                        {myActions.filter(a => a.status !== 'concluida').length === 0 && <div className="text-center py-8 text-gray-400 text-sm">Tudo em dia! Nenhuma ação pendente.</div>}
+                    </div>
+                    </div>
+                </div>
                 </div>
             );
         }
 
-        // --- EXPEDITION LIST ---
         function ExpeditionList({ expeditions, userProfile, onSelect, companies, db, appId, user, showToast, visits }) {
             const [isModalOpen, setIsModalOpen] = useState(false);
             const [closingExpedition, setClosingExpedition] = useState(null);
-            const [rejectingExp, setRejectingExp] = useState(null);
-            const [viewMode, setViewMode] = useState('kanban');
-
+            const [rejectingExp, setRejectingExp] = useState(null); 
+            const [viewMode, setViewMode] = useState('kanban'); 
+            
             const myExpeditions = expeditions.filter(e => userProfile.role === 'gerente' || e.userId === userProfile.uid);
 
             const colunas = [
@@ -540,7 +556,9 @@
                 const groups = {};
                 myExpeditions.forEach(exp => {
                     const uId = exp.userId || 'unknown';
-                    if (!groups[uId]) groups[uId] = { userId: uId, userName: exp.userName || 'Executivo', expeditions: [] };
+                    if (!groups[uId]) {
+                        groups[uId] = { userId: uId, userName: exp.userName || 'Executivo Desconhecido', expeditions: [] };
+                    }
                     groups[uId].expeditions.push(exp);
                 });
                 return Object.values(groups);
@@ -548,226 +566,272 @@
 
             return (
                 <div className="space-y-6 h-full flex flex-col">
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shrink-0">
-                        <div>
-                            <h2 className="text-2xl font-bold text-gray-800">Quadro de Expedições</h2>
-                            <p className="text-gray-500 text-sm">Acompanhe o status das viagens.</p>
-                        </div>
-                        <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
-                            {userProfile.role === 'gerente' && (
-                                <div className="flex bg-gray-200 p-1 rounded-lg w-full md:w-auto">
-                                    <button onClick={() => setViewMode('kanban')} className={`flex-1 md:flex-none px-4 py-2 text-sm font-medium rounded-md transition-all ${viewMode === 'kanban' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500'}`}>Visão Kanban</button>
-                                    <button onClick={() => setViewMode('executivo')} className={`flex-1 md:flex-none px-4 py-2 text-sm font-medium rounded-md transition-all ${viewMode === 'executivo' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500'}`}>Por Executivo</button>
-                                </div>
-                            )}
-                            <Button onClick={() => setIsModalOpen(true)} icon={Plus} className="w-full md:w-auto">Nova Expedição</Button>
-                        </div>
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shrink-0">
+                    <div>
+                    <h2 className="text-2xl font-bold text-gray-800">Quadro de Expedições</h2>
+                    <p className="text-gray-500 text-sm">Acompanhe o status das viagens.</p>
                     </div>
+                    
+                    <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
+                        {userProfile.role === 'gerente' && (
+                            <div className="flex bg-gray-200 p-1 rounded-lg w-full md:w-auto">
+                                <button onClick={() => setViewMode('kanban')} className={`flex-1 md:flex-none px-4 py-2 text-sm font-medium rounded-md transition-all ${viewMode === 'kanban' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}>Visão Kanban</button>
+                                <button onClick={() => setViewMode('executivo')} className={`flex-1 md:flex-none px-4 py-2 text-sm font-medium rounded-md transition-all ${viewMode === 'executivo' ? 'bg-white shadow-sm text-gray-800' : 'text-gray-500 hover:text-gray-700'}`}>Por Executivo</button>
+                            </div>
+                        )}
+                        <Button onClick={() => setIsModalOpen(true)} icon={Plus} className="w-full md:w-auto">Nova Expedição</Button>
+                    </div>
+                </div>
 
-                    {viewMode === 'kanban' ? (
-                        <div className="flex-1 flex gap-6 overflow-x-auto pb-4 snap-x">
-                            {colunas.map(col => (
-                                <div key={col.id} className={`min-w-[320px] md:min-w-[350px] flex-1 rounded-2xl flex flex-col snap-center border border-gray-200/60 shadow-sm overflow-hidden ${col.bg}`}>
-                                    <div className="p-4 border-b border-gray-200/50 bg-white/50 backdrop-blur-sm sticky top-0 z-10 flex justify-between items-center">
-                                        <h3 className="font-bold text-gray-800">{col.title}</h3>
-                                        <span className="bg-white px-2.5 py-1 rounded-full text-xs font-bold text-gray-600 shadow-sm border border-gray-100">
-                                            {myExpeditions.filter(e => col.statuses.includes(e.status)).length}
+                {viewMode === 'kanban' ? (
+                    <div className="flex-1 flex gap-6 overflow-x-auto pb-4 snap-x">
+                    {colunas.map(col => (
+                        <div key={col.id} className={`min-w-[320px] md:min-w-[350px] flex-1 rounded-2xl flex flex-col snap-center border border-gray-200/60 shadow-sm overflow-hidden ${col.bg}`}>
+                            <div className="p-4 border-b border-gray-200/50 bg-white/50 backdrop-blur-sm sticky top-0 z-10 flex justify-between items-center">
+                            <h3 className="font-bold text-gray-800">{col.title}</h3>
+                            <span className="bg-white px-2.5 py-1 rounded-full text-xs font-bold text-gray-600 shadow-sm border border-gray-100">
+                                {myExpeditions.filter(e => col.statuses.includes(e.status)).length}
+                            </span>
+                            </div>
+                            <div className="p-3 flex-1 overflow-y-auto space-y-3 custom-scrollbar">
+                            {myExpeditions.filter(e => col.statuses.includes(e.status)).map(exp => (
+                                <div key={exp.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 hover:shadow-md hover:border-emerald-300 transition-all cursor-pointer group flex flex-col relative">
+                                    <div onClick={() => onSelect(exp.id)}>
+                                        <div className="flex justify-between items-start mb-3">
+                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(exp.status, 'expedition')}`}>
+                                            {exp.status.replace('_', ' ')}
                                         </span>
-                                    </div>
-                                    <div className="p-3 flex-1 overflow-y-auto space-y-3 custom-scrollbar">
-                                        {myExpeditions.filter(e => col.statuses.includes(e.status)).map(exp => (
-                                            <div key={exp.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 hover:shadow-md hover:border-emerald-300 transition-all cursor-pointer group flex flex-col relative">
-                                                <div onClick={() => onSelect(exp.id)}>
-                                                    <div className="flex justify-between items-start mb-3">
-                                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(exp.status, 'expedition')}`}>
-                                                            {exp.status.replace('_', ' ')}
-                                                        </span>
-                                                    </div>
-                                                    <h4 className="font-bold text-gray-800 text-base mb-1 group-hover:text-emerald-700 transition-colors leading-tight">{exp.title}</h4>
-                                                    <div className="space-y-1.5 text-xs text-gray-500 mt-3">
-                                                        <div className="flex items-center gap-1.5"><MapPin size={14} className="text-gray-400"/> {exp.region}</div>
-                                                        <div className="flex items-center gap-1.5"><Calendar size={14} className="text-gray-400"/> {formatDate(exp.startDate)} a {formatDate(exp.endDate)}</div>
-                                                        {userProfile.role === 'gerente' && exp.userName && (
-                                                            <div className="flex items-center gap-1.5"><UserCircle size={14} className="text-gray-400"/> {exp.userName}</div>
-                                                        )}
-                                                    </div>
-                                                    {(exp.status === 'aguardando_aprovacao' || exp.status === 'devolvida') && exp.totals && (
-                                                        <div className="mt-3 bg-slate-50 p-2.5 rounded-lg border border-slate-100 grid grid-cols-2 gap-2 text-xs">
-                                                            <div><span className="block text-gray-400 font-bold text-[9px] uppercase">Custo Est.</span><span className="font-bold text-emerald-700">R$ {exp.totals.cost?.toFixed(2)}</span></div>
-                                                            <div><span className="block text-gray-400 font-bold text-[9px] uppercase">Distância</span><span className="font-bold text-blue-700">{exp.totals.km} KM</span></div>
-                                                        </div>
-                                                    )}
-                                                    {exp.status === 'devolvida' && exp.rejectionReason && (
-                                                        <div className="mt-3 p-2.5 bg-red-50 border border-red-100 rounded-lg text-xs text-red-700">
-                                                            <span className="font-bold block text-[10px] uppercase mb-0.5"><AlertTriangle size={10} className="inline mr-1"/>Motivo da recusa:</span>
-                                                            {exp.rejectionReason}
-                                                        </div>
-                                                    )}
+                                        </div>
+                                        <h4 className="font-bold text-gray-800 text-base mb-1 group-hover:text-emerald-700 transition-colors leading-tight">{exp.title}</h4>
+                                        <div className="space-y-1.5 text-xs text-gray-500 mt-3">
+                                        <div className="flex items-center gap-1.5"><MapPin size={14} className="text-gray-400"/> {exp.region}</div>
+                                        <div className="flex items-center gap-1.5"><Calendar size={14} className="text-gray-400"/> {formatDate(exp.startDate)} a {formatDate(exp.endDate)}</div>
+                                        </div>
+
+                                        {(exp.status === 'aguardando_aprovacao' || exp.status === 'devolvida') && exp.totals && (
+                                            <div className="mt-3 bg-slate-50 p-2.5 rounded-lg border border-slate-100 grid grid-cols-2 gap-2 text-xs">
+                                                <div>
+                                                    <span className="block text-gray-400 font-bold text-[9px] uppercase">Custo Est.</span>
+                                                    <span className="font-bold text-emerald-700">R$ {exp.totals.cost?.toFixed(2)}</span>
                                                 </div>
-                                                <div className="mt-4 pt-3 border-t border-gray-50 flex justify-between items-center">
-                                                    <span className="text-xs font-medium text-gray-400 flex items-center gap-1"><Briefcase size={12}/> {exp.totalCompanies || 0} Leads</span>
-                                                    <div className="flex gap-1.5">
-                                                        {exp.status === 'aguardando_aprovacao' && userProfile.role === 'gerente' && (
-                                                            <>
-                                                                <button onClick={(e) => { e.stopPropagation(); setRejectingExp(exp); }} className="text-[10px] bg-red-50 text-red-600 px-2 py-1.5 rounded-lg font-bold hover:bg-red-100 transition-colors border border-red-100">Reprovar</button>
-                                                                <button onClick={(e) => { e.stopPropagation(); updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'expeditions', exp.id), { status: 'planejada' }); showToast("Expedição Aprovada!"); }} className="text-[10px] bg-emerald-100 text-emerald-700 px-2.5 py-1.5 rounded-lg font-bold hover:bg-emerald-200 transition-colors">Aprovar</button>
-                                                            </>
-                                                        )}
-                                                        {exp.status === 'devolvida' && (userProfile.role === 'executivo' ? exp.userId === userProfile.uid : true) && (
-                                                            <button onClick={(e) => { e.stopPropagation(); updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'expeditions', exp.id), { status: 'aguardando_aprovacao', rejectionReason: null }); showToast("Reenviada para aprovação!"); }} className="text-[10px] bg-purple-100 text-purple-700 px-2.5 py-1.5 rounded-lg font-bold hover:bg-purple-200 transition-colors">Reenviar</button>
-                                                        )}
-                                                        {exp.status === 'planejada' && (userProfile.role === 'gerente' || exp.userId === userProfile.uid) && (
-                                                            <button onClick={(e) => { e.stopPropagation(); updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'expeditions', exp.id), { status: 'em_andamento' }); showToast("Viagem Iniciada!"); }} className="text-[10px] bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg font-bold hover:bg-blue-200 transition-colors">Iniciar</button>
-                                                        )}
-                                                        {exp.status === 'em_andamento' && (userProfile.role === 'gerente' || exp.userId === userProfile.uid) && (
-                                                            <button onClick={(e) => { e.stopPropagation(); setClosingExpedition(exp); }} className="text-[10px] bg-emerald-600 text-white px-3 py-1.5 rounded-lg font-bold hover:bg-emerald-700 shadow-sm transition-colors">Concluir</button>
-                                                        )}
-                                                    </div>
+                                                <div>
+                                                    <span className="block text-gray-400 font-bold text-[9px] uppercase">Distância</span>
+                                                    <span className="font-bold text-blue-700">{exp.totals.km} KM</span>
                                                 </div>
                                             </div>
-                                        ))}
-                                        {myExpeditions.filter(e => col.statuses.includes(e.status)).length === 0 && (
-                                            <div className="h-full flex flex-col items-center justify-center text-gray-400 text-sm py-10 opacity-60">
-                                                <div className="w-12 h-12 border-2 border-dashed border-gray-300 rounded-full flex items-center justify-center mb-2"><Truck size={20}/></div>
-                                                <p>Nenhuma expedição</p>
+                                        )}
+
+                                        {exp.status === 'devolvida' && exp.rejectionReason && (
+                                            <div className="mt-3 p-2.5 bg-red-50 border border-red-100 rounded-lg text-xs text-red-700">
+                                                <span className="font-bold block text-[10px] uppercase mb-0.5"><AlertTriangle size={10} className="inline mr-1"/>Motivo da recusa:</span>
+                                                {exp.rejectionReason}
                                             </div>
                                         )}
                                     </div>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="flex-1 overflow-y-auto space-y-6 pb-4">
-                            {groupedByExecutive.map(group => {
-                                const realizadas = group.expeditions.filter(e => e.status === 'concluida').length;
-                                const pendentes = group.expeditions.length - realizadas;
-                                return (
-                                    <div key={group.userId} className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-                                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5 border-b border-gray-100 pb-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-lg">{group.userName.charAt(0)}</div>
-                                                <div>
-                                                    <h3 className="text-xl font-bold text-gray-800">{group.userName}</h3>
-                                                    <span className="text-gray-500 text-sm">{group.expeditions.length} expedições</span>
-                                                </div>
-                                            </div>
-                                            <div className="flex gap-4 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                                                <div className="text-center px-2"><span className="block text-[10px] font-bold text-gray-400 uppercase">Realizadas</span><span className="text-xl font-bold text-emerald-600">{realizadas}</span></div>
-                                                <div className="w-px bg-gray-200"></div>
-                                                <div className="text-center px-2"><span className="block text-[10px] font-bold text-gray-400 uppercase">Pendentes</span><span className="text-xl font-bold text-amber-500">{pendentes}</span></div>
-                                            </div>
-                                        </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                            {group.expeditions.map(exp => {
-                                                const expVisits = visits.filter(v => v.expeditionId === exp.id);
-                                                const visRealizadas = expVisits.filter(v => v.status === 'realizada').length;
-                                                const visPendentes = expVisits.length - visRealizadas;
-                                                return (
-                                                    <div key={exp.id} onClick={() => onSelect(exp.id)} className="border border-gray-200 bg-gray-50 hover:border-emerald-300 hover:bg-emerald-50/20 hover:shadow-md cursor-pointer transition-all p-4 rounded-xl flex flex-col relative">
-                                                        <div className="flex justify-between items-start mb-3">
-                                                            <h4 className="font-bold text-gray-800 text-sm truncate pr-2">{exp.title}</h4>
-                                                            <span className={`shrink-0 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(exp.status, 'expedition')}`}>{exp.status.replace('_', ' ')}</span>
-                                                        </div>
-                                                        <div className="grid grid-cols-2 gap-3 mt-auto bg-white p-3 rounded-lg border border-gray-100">
-                                                            <div className="flex flex-col"><span className="text-xs text-gray-400 uppercase font-semibold">Vis. Realizadas</span><span className="font-bold text-emerald-600 text-lg">{visRealizadas}</span></div>
-                                                            <div className="flex flex-col"><span className="text-xs text-gray-400 uppercase font-semibold">Vis. Pendentes</span><span className="font-bold text-amber-500 text-lg">{visPendentes}</span></div>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
+                                    
+                                    <div className="mt-4 pt-3 border-t border-gray-50 flex justify-between items-center">
+                                        <span className="text-xs font-medium text-gray-400 flex items-center gap-1">
+                                        <Briefcase size={12}/> {exp.totalCompanies || 0} Leads
+                                        </span>
+                                        
+                                        <div className="flex gap-1.5">
+                                            {exp.status === 'aguardando_aprovacao' && userProfile.role === 'gerente' && (
+                                                <>
+                                                    <button onClick={(e) => { e.stopPropagation(); setRejectingExp(exp); }} className="text-[10px] bg-red-50 text-red-600 px-2 py-1.5 rounded-lg font-bold hover:bg-red-100 transition-colors border border-red-100">Reprovar</button>
+                                                    <button onClick={(e) => { e.stopPropagation(); updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'expeditions', exp.id), { status: 'planejada' }); showToast("Expedição Aprovada!"); }} className="text-[10px] bg-emerald-100 text-emerald-700 px-2.5 py-1.5 rounded-lg font-bold hover:bg-emerald-200 transition-colors">Aprovar</button>
+                                                </>
+                                            )}
+                                            {exp.status === 'devolvida' && userProfile.role === 'executivo' && (
+                                                <button onClick={(e) => { e.stopPropagation(); updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'expeditions', exp.id), { status: 'aguardando_aprovacao', rejectionReason: null }); showToast("Reenviada para aprovação!"); }} className="text-[10px] bg-purple-100 text-purple-700 px-2.5 py-1.5 rounded-lg font-bold hover:bg-purple-200 transition-colors">Reenviar</button>
+                                            )}
+                                            {exp.status === 'planejada' && (
+                                                <button onClick={(e) => { e.stopPropagation(); updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'expeditions', exp.id), { status: 'em_andamento' }); showToast("Viagem Iniciada!"); }} className="text-[10px] bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg font-bold hover:bg-blue-200 transition-colors">Iniciar</button>
+                                            )}
+                                            {exp.status === 'em_andamento' && (
+                                                <button onClick={(e) => { e.stopPropagation(); setClosingExpedition(exp); }} className="text-[10px] bg-emerald-600 text-white px-3 py-1.5 rounded-lg font-bold hover:bg-emerald-700 shadow-sm transition-colors">Concluir Viagem</button>
+                                            )}
                                         </div>
                                     </div>
-                                );
-                            })}
-                            {groupedByExecutive.length === 0 && <div className="text-center py-16 text-gray-400">Nenhuma expedição encontrada.</div>}
+                                </div>
+                            ))}
+                            {myExpeditions.filter(e => col.statuses.includes(e.status)).length === 0 && (
+                                <div className="h-full flex flex-col items-center justify-center text-gray-400 text-sm py-10 opacity-60">
+                                <div className="w-12 h-12 border-2 border-dashed border-gray-300 rounded-full flex items-center justify-center mb-2"><Truck size={20}/></div>
+                                <p>Nenhuma expedição</p>
+                                </div>
+                            )}
+                            </div>
                         </div>
-                    )}
+                    ))}
+                    </div>
+                ) : (
+                    <div className="flex-1 overflow-y-auto space-y-6 pb-4">
+                    {groupedByExecutive.map(group => {
+                        const realizadas = group.expeditions.filter(e => e.status === 'concluida').length;
+                        const pendentes = group.expeditions.length - realizadas;
 
-                    {isModalOpen && <ExpeditionFormModal onClose={() => setIsModalOpen(false)} db={db} appId={appId} user={user} userProfile={userProfile} companies={companies} showToast={showToast} />}
-                    {closingExpedition && <PostExpeditionModal expedition={closingExpedition} onClose={() => setClosingExpedition(null)} db={db} appId={appId} showToast={showToast} />}
-                    {rejectingExp && (
-                        <RejectExpeditionModal
-                            onClose={() => setRejectingExp(null)}
-                            onConfirm={async (reason) => {
-                                if (!reason) return alert("Informe o motivo.");
-                                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'expeditions', rejectingExp.id), { status: 'devolvida', rejectionReason: reason });
-                                showToast("Expedição devolvida.", "error");
-                                setRejectingExp(null);
-                            }}
-                        />
-                    )}
+                        return (
+                        <div key={group.userId} className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5 border-b border-gray-100 pb-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-lg">
+                                        {group.userName.charAt(0)}
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-gray-800 leading-none mb-1">{group.userName}</h3>
+                                        <span className="text-gray-500 text-sm">{group.expeditions.length} expedições vinculadas</span>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex gap-4 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                                    <div className="text-center px-2">
+                                        <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wide">Realizadas</span>
+                                        <span className="text-xl font-bold text-emerald-600">{realizadas}</span>
+                                    </div>
+                                    <div className="w-px bg-gray-200"></div>
+                                    <div className="text-center px-2">
+                                        <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wide">Pendentes</span>
+                                        <span className="text-xl font-bold text-amber-500">{pendentes}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {group.expeditions.map(exp => {
+                                    const expVisits = visits.filter(v => v.expeditionId === exp.id);
+                                    const visRealizadas = expVisits.filter(v => v.status === 'realizada').length;
+                                    const visPendentes = expVisits.length - visRealizadas;
+
+                                    return (
+                                        <div key={exp.id} onClick={() => onSelect(exp.id)} className="border border-gray-200 bg-gray-50 hover:border-emerald-300 hover:bg-emerald-50/20 hover:shadow-md cursor-pointer transition-all p-4 rounded-xl flex flex-col relative">
+                                            <div className="flex justify-between items-start mb-3">
+                                                <h4 className="font-bold text-gray-800 text-sm truncate pr-2" title={exp.title}>{exp.title}</h4>
+                                                <span className={`shrink-0 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border ${getStatusColor(exp.status, 'expedition')}`}>{exp.status.replace('_', ' ')}</span>
+                                            </div>
+                                            
+                                            <div className="grid grid-cols-2 gap-3 mt-auto bg-white p-3 rounded-lg border border-gray-100">
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs text-gray-400 uppercase font-semibold">Vis. Realizadas</span>
+                                                    <span className="font-bold text-emerald-600 text-lg">{visRealizadas}</span>
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs text-gray-400 uppercase font-semibold">Vis. Pendentes</span>
+                                                    <span className="font-bold text-amber-500 text-lg">{visPendentes}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                            </div>
+                        </div>
+                        )
+                    })}
+                    </div>
+                )}
+
+                {isModalOpen && (
+                    <CreateExpeditionModal onClose={() => setIsModalOpen(false)} companies={companies} db={db} appId={appId} user={user} userProfile={userProfile} showToast={showToast} />
+                )}
+                {closingExpedition && (
+                    <PostExpeditionModal expedition={closingExpedition} onClose={() => setClosingExpedition(null)} db={db} appId={appId} showToast={showToast} />
+                )}
+                {rejectingExp && (
+                    <RejectExpeditionModal onClose={() => setRejectingExp(null)} onConfirm={async (reason) => {
+                        if(!reason) return alert("Informe o motivo da reprovação.");
+                        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'expeditions', rejectingExp.id), { status: 'devolvida', rejectionReason: reason });
+                        showToast("Expedição devolvida para ajustes.", "error");
+                        setRejectingExp(null);
+                    }}/>
+                )}
                 </div>
             );
         }
 
-        // --- EXPEDITION FORM MODAL ---
-        function ExpeditionFormModal({ onClose, db, appId, user, userProfile, companies, showToast }) {
+        function CreateExpeditionModal({ onClose, db, appId, user, userProfile, companies, showToast }) {
             const [step, setStep] = useState(1);
             const [isSubmitting, setIsSubmitting] = useState(false);
-            const [formData, setFormData] = useState({ title: '', region: '', startDate: '', endDate: '', objective: '' });
-            const [costs, setCosts] = useState({ flights: 0, lodging: 0, rental: 0, meals: 0, fuelPrice: 5.89, avgConsumption: 10 });
-            const [routes, setRoutes] = useState([{ id: Date.now(), from: '', to: '', distance: 0, leads: [] }]);
-
-            const totalDistance = routes.reduce((s, r) => s + Number(r.distance || 0), 0);
-            const totalLeads = routes.reduce((s, r) => s + r.leads.length, 0);
+            
+            const [formData, setFormData] = useState({ title: '', region: '', startDate: '', endDate: '' });
+            const [costs, setCosts] = useState({ flights: 0, lodging: 0, rental: 0, meals: 0, fuelPrice: 5.8, avgConsumption: 10 });
+            const [routes, setRoutes] = useState([{ id: 1, from: '', to: '', distance: 0, leads: [] }]);
+            
+            const totalDistance = routes.reduce((acc, r) => acc + (Number(r.distance) || 0), 0);
             const totalFuelCost = costs.avgConsumption > 0 ? (totalDistance / costs.avgConsumption) * costs.fuelPrice : 0;
-            const grandTotal = costs.flights + costs.lodging + costs.rental + costs.meals + totalFuelCost;
+            const totalOtherCosts = Number(costs.flights) + Number(costs.lodging) + Number(costs.rental) + Number(costs.meals);
+            const grandTotal = totalFuelCost + totalOtherCosts;
+            const totalLeads = routes.reduce((acc, r) => acc + r.leads.length, 0);
 
             const addRoute = () => setRoutes([...routes, { id: Date.now(), from: '', to: '', distance: 0, leads: [] }]);
             const removeRoute = (id) => setRoutes(routes.filter(r => r.id !== id));
             const updateRoute = (id, field, value) => setRoutes(routes.map(r => r.id === id ? { ...r, [field]: value } : r));
+            
             const addLead = (routeId) => setRoutes(routes.map(r => r.id === routeId ? { ...r, leads: [...r.leads, { id: Date.now(), name: '', objective: '' }] } : r));
             const updateLead = (routeId, leadId, field, value) => setRoutes(routes.map(r => r.id === routeId ? { ...r, leads: r.leads.map(l => l.id === leadId ? { ...l, [field]: value } : l) } : r));
             const removeLead = (routeId, leadId) => setRoutes(routes.map(r => r.id === routeId ? { ...r, leads: r.leads.filter(l => l.id !== leadId) } : r));
 
             const handleSubmit = async () => {
-                if (!formData.title || !formData.startDate) return alert("Preencha o título e a data de início.");
+                if (!formData.title || !formData.startDate) return alert("Preencha o título e as datas obrigatórias.");
                 if (totalLeads === 0) return alert("Adicione pelo menos um lead em alguma rota.");
+                
                 setIsSubmitting(true);
                 try {
-                    const batch = writeBatch(db);
-                    const expRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'expeditions'));
-                    batch.set(expRef, {
-                        ...formData,
-                        userId: user.uid,
-                        userName: userProfile.name || user.email,
-                        status: 'aguardando_aprovacao',
-                        costs: { ...costs, totalFuelCost, grandTotal },
-                        routes: routes.map(r => ({ from: r.from, to: r.to, distance: r.distance, leadsCount: r.leads.length })),
-                        totalCompanies: totalLeads,
-                        totals: { km: totalDistance, cost: grandTotal },
-                        createdAt: serverTimestamp()
-                    });
-                    for (const route of routes) {
-                        for (const lead of route.leads) {
-                            if (!lead.name.trim()) continue;
-                            let companyId = null;
-                            const existingCompany = companies.find(c => c.name.toLowerCase() === lead.name.trim().toLowerCase());
-                            if (existingCompany) {
-                                companyId = existingCompany.id;
-                            } else {
-                                const newCompRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'companies'));
-                                batch.set(newCompRef, { name: lead.name.trim(), city: route.to || 'Desconhecida', state: formData.region, segment: 'Prospect/Lead', createdByUserName: userProfile.name || user.email, createdAt: serverTimestamp() });
-                                companyId = newCompRef.id;
-                            }
-                            const visitRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'visits'));
-                            batch.set(visitRef, { expeditionId: expRef.id, companyId, companyName: lead.name.trim(), city: route.to || 'Em rota', status: 'planejada', notesPre: lead.objective || '', createdAt: serverTimestamp() });
+                const batch = writeBatch(db);
+                const expRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'expeditions'));
+                
+                batch.set(expRef, {
+                    ...formData,
+                    userId: user.uid,
+                    userName: userProfile?.name || user.email || 'Executivo',
+                    status: 'aguardando_aprovacao',
+                    costs: { ...costs, totalFuelCost, grandTotal },
+                    routes: routes.map(r => ({ from: r.from, to: r.to, distance: r.distance, leadsCount: r.leads.length })),
+                    totalCompanies: totalLeads,
+                    totals: { km: totalDistance, cost: grandTotal },
+                    createdAt: serverTimestamp()
+                });
+
+                for (const route of routes) {
+                    for (const lead of route.leads) {
+                        if (!lead.name.trim()) continue;
+                        
+                        let companyId = null;
+                        const existingCompany = companies.find(c => c.name.toLowerCase() === lead.name.trim().toLowerCase());
+                        
+                        if (existingCompany) {
+                            companyId = existingCompany.id;
+                        } else {
+                            const newCompRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'companies'));
+                            batch.set(newCompRef, {
+                                name: lead.name.trim(), city: route.to || route.from || 'Desconhecida',
+                                state: formData.region, segment: 'Prospect/Lead',
+                                createdByUserName: userProfile?.name || user.email || 'Sistema',
+                                createdAt: serverTimestamp()
+                            });
+                            companyId = newCompRef.id;
                         }
+
+                        const visitRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'visits'));
+                        batch.set(visitRef, {
+                            expeditionId: expRef.id, companyId: companyId, companyName: lead.name.trim(),
+                            city: route.to || 'Em rota', status: 'planejada', notesPre: lead.objective || 'Objetivo não especificado',
+                            createdAt: serverTimestamp()
+                        });
                     }
-                    await batch.commit();
-                    showToast("Expedição enviada para aprovação!");
-                    onClose();
-                } catch (err) {
-                    alert("Erro ao enviar: " + err.message);
-                } finally {
-                    setIsSubmitting(false);
                 }
+
+                await batch.commit();
+                showToast("Expedição enviada para aprovação!");
+                onClose();
+                } catch (err) { alert("Erro ao enviar: " + err.message); } finally { setIsSubmitting(false); }
             };
 
             return (
                 <Modal title="Planejamento Pré-Viagem" onClose={onClose} footer={
                     <div className="flex justify-between items-center w-full">
-                        <div className="text-sm"><span className="text-gray-500 block text-xs">Custo Estimado</span><strong className="text-lg text-emerald-700">R$ {grandTotal.toFixed(2)}</strong></div>
+                        <div className="text-sm">
+                            <span className="text-gray-500 block text-xs">Custo Estimado</span>
+                            <strong className="text-lg text-emerald-700">R$ {grandTotal.toFixed(2)}</strong>
+                        </div>
                         <div className="flex gap-2">
                             {step === 2 && <Button variant="secondary" onClick={() => setStep(1)}>Voltar</Button>}
                             {step === 1 && <Button onClick={() => setStep(2)}>Próximo: Rotas & Leads</Button>}
@@ -775,81 +839,102 @@
                         </div>
                     </div>
                 }>
-                    <div className="space-y-6">
-                        <div className="flex gap-2 mb-2">
-                            <div className={`h-2 flex-1 rounded-full ${step >= 1 ? 'bg-emerald-500' : 'bg-gray-200'}`}/>
-                            <div className={`h-2 flex-1 rounded-full ${step >= 2 ? 'bg-emerald-500' : 'bg-gray-200'}`}/>
-                        </div>
-                        {step === 1 && (
-                            <div className="animate-fade-in space-y-4">
-                                <Input label="Título da Expedição *" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="Ex: Expansão Norte PR" />
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <Input label="Região Base" value={formData.region} onChange={e => setFormData({...formData, region: e.target.value})} />
-                                    <Input label="Data Início *" type="date" value={formData.startDate} onChange={e => setFormData({...formData, startDate: e.target.value})} />
-                                    <Input label="Data Fim" type="date" value={formData.endDate} onChange={e => setFormData({...formData, endDate: e.target.value})} />
-                                </div>
-                                <h4 className="font-bold text-gray-800 border-b pb-2">Orçamento & Custos (R$)</h4>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    <Input label="Voos" type="number" step="0.01" min="0" value={costs.flights} onChange={e => setCosts({...costs, flights: Number(e.target.value)})} />
-                                    <Input label="Hospedagem" type="number" step="0.01" min="0" value={costs.lodging} onChange={e => setCosts({...costs, lodging: Number(e.target.value)})} />
-                                    <Input label="Veículo" type="number" step="0.01" min="0" value={costs.rental} onChange={e => setCosts({...costs, rental: Number(e.target.value)})} />
-                                    <Input label="Alimentação" type="number" step="0.01" min="0" value={costs.meals} onChange={e => setCosts({...costs, meals: Number(e.target.value)})} />
-                                </div>
-                                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 grid grid-cols-2 gap-4">
-                                    <Input label="Combustível (R$/L)" type="number" step="0.01" value={costs.fuelPrice} onChange={e => setCosts({...costs, fuelPrice: Number(e.target.value)})} />
-                                    <Input label="Média (Km/L)" type="number" step="0.1" value={costs.avgConsumption} onChange={e => setCosts({...costs, avgConsumption: Number(e.target.value)})} />
-                                </div>
-                            </div>
-                        )}
-                        {step === 2 && (
-                            <div className="animate-fade-in space-y-6">
-                                <div className="flex justify-between items-center border-b pb-2">
-                                    <h4 className="font-bold text-gray-800">Rotas e Leads</h4>
-                                    <span className="text-xs text-gray-500">{totalDistance} km • {totalLeads} leads</span>
-                                </div>
-                                <div className="space-y-6">
-                                    {routes.map((route, rIndex) => (
-                                        <div key={route.id} className="bg-white border border-gray-200 shadow-sm rounded-xl p-4 relative">
-                                            {routes.length > 1 && <button onClick={() => removeRoute(route.id)} className="absolute right-3 top-3 text-red-400 hover:text-red-600 p-1"><Trash2 size={16}/></button>}
-                                            <h5 className="text-xs font-bold text-emerald-700 uppercase mb-3">Trecho {rIndex + 1}</h5>
-                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
-                                                <Input label="Origem" value={route.from} onChange={e => updateRoute(route.id, 'from', e.target.value)} placeholder="Ex: São Paulo, SP" />
-                                                <Input label="Destino" value={route.to} onChange={e => updateRoute(route.id, 'to', e.target.value)} placeholder="Ex: Campinas, SP" />
-                                                <Input label="Distância (KM)" type="number" min="0" value={route.distance} onChange={e => updateRoute(route.id, 'distance', e.target.value)} />
-                                            </div>
-                                            <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
-                                                <div className="flex justify-between items-center mb-3">
-                                                    <label className="text-sm font-medium text-gray-700">Leads ({route.leads.length})</label>
-                                                    <Button size="sm" variant="secondary" onClick={() => addLead(route.id)}><Plus size={14}/> Add Lead</Button>
-                                                </div>
-                                                <div className="space-y-2">
-                                                    {route.leads.map((lead) => (
-                                                        <div key={lead.id} className="flex gap-2 items-start bg-white p-2 rounded border border-gray-200">
-                                                            <div className="w-1/3"><input className="w-full p-2 border border-gray-200 rounded text-sm outline-none focus:border-emerald-500" placeholder="Nome da Empresa/Lead" value={lead.name} onChange={e => updateLead(route.id, lead.id, 'name', e.target.value)} /></div>
-                                                            <div className="flex-1"><input className="w-full p-2 border border-gray-200 rounded text-sm outline-none focus:border-emerald-500" placeholder="Objetivo da visita" value={lead.objective} onChange={e => updateLead(route.id, lead.id, 'objective', e.target.value)} /></div>
-                                                            <button onClick={() => removeLead(route.id, lead.id)} className="p-2 text-gray-400 hover:text-red-500"><X size={16}/></button>
-                                                        </div>
-                                                    ))}
-                                                    {route.leads.length === 0 && <p className="text-xs text-gray-400 italic">Nenhum lead adicionado.</p>}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                                <Button variant="secondary" onClick={addRoute} className="w-full border-dashed border-2 hover:border-emerald-300 hover:text-emerald-700" icon={MapPin}>Adicionar Novo Trecho</Button>
-                            </div>
-                        )}
+                <div className="space-y-6">
+                    <div className="flex gap-2 mb-6">
+                        <div className={`h-2 flex-1 rounded-full ${step >= 1 ? 'bg-emerald-500' : 'bg-gray-200'}`}/>
+                        <div className={`h-2 flex-1 rounded-full ${step >= 2 ? 'bg-emerald-500' : 'bg-gray-200'}`}/>
                     </div>
+
+                    {step === 1 && (
+                        <div className="animate-fade-in space-y-6">
+                        <div>
+                            <h4 className="font-bold text-gray-800 border-b pb-2 mb-4">Dados Básicos</h4>
+                            <Input label="Título da Expedição" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="Ex: Expansão Norte PR" />
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <Input label="Região Base" value={formData.region} onChange={e => setFormData({...formData, region: e.target.value})} />
+                                <Input label="Data Início" type="date" value={formData.startDate} onChange={e => setFormData({...formData, startDate: e.target.value})} />
+                                <Input label="Data Fim" type="date" value={formData.endDate} onChange={e => setFormData({...formData, endDate: e.target.value})} />
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 className="font-bold text-gray-800 border-b pb-2 mb-4">Orçamento & Custos (R$)</h4>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <Input label="Voos (R$ Total)" type="number" step="0.01" min="0" value={costs.flights} onChange={e => setCosts({...costs, flights: Number(e.target.value)})} />
+                                <Input label="Hospedagem (R$ Total)" type="number" step="0.01" min="0" value={costs.lodging} onChange={e => setCosts({...costs, lodging: Number(e.target.value)})} />
+                                <Input label="Aluguel Veículo (R$ Total)" type="number" step="0.01" min="0" value={costs.rental} onChange={e => setCosts({...costs, rental: Number(e.target.value)})} />
+                                <Input label="Alimentação (R$ Total)" type="number" step="0.01" min="0" value={costs.meals} onChange={e => setCosts({...costs, meals: Number(e.target.value)})} />
+                            </div>
+                            <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 grid grid-cols-2 gap-4 mt-4">
+                                <Input label="Preço Combustível (R$/L)" type="number" step="0.01" value={costs.fuelPrice} onChange={e => setCosts({...costs, fuelPrice: Number(e.target.value)})} />
+                                <Input label="Média Km/L Veículo" type="number" step="0.1" value={costs.avgConsumption} onChange={e => setCosts({...costs, avgConsumption: Number(e.target.value)})} />
+                            </div>
+                        </div>
+                        </div>
+                    )}
+
+                    {step === 2 && (
+                        <div className="animate-fade-in space-y-6">
+                        <div className="flex justify-between items-center border-b pb-2">
+                            <h4 className="font-bold text-gray-800">Rotas e Leads</h4>
+                            <span className="text-xs text-gray-500">{totalDistance} km total • {totalLeads} leads</span>
+                        </div>
+                        
+                        <div className="space-y-6">
+                            {routes.map((route, rIndex) => (
+                                <div key={route.id} className="bg-white border border-gray-200 shadow-sm rounded-xl p-4 relative">
+                                    {routes.length > 1 && (
+                                        <button onClick={() => removeRoute(route.id)} className="absolute right-3 top-3 text-red-400 hover:text-red-600 p-1"><Trash2 size={16}/></button>
+                                    )}
+                                    <h5 className="text-xs font-bold text-emerald-700 uppercase mb-3">Trecho {rIndex + 1}</h5>
+                                    
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                                        <Input label="Origem" value={route.from} onChange={e => updateRoute(route.id, 'from', e.target.value)} placeholder="Ex: São Paulo, SP" />
+                                        <Input label="Destino" value={route.to} onChange={e => updateRoute(route.id, 'to', e.target.value)} placeholder="Ex: Campinas, SP" />
+                                        <Input label="Distância (KM)" type="number" min="0" value={route.distance} onChange={e => updateRoute(route.id, 'distance', e.target.value)} />
+                                    </div>
+
+                                    <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                                        <div className="flex justify-between items-center mb-3">
+                                            <label className="text-sm font-medium text-gray-700">Leads neste trecho ({route.leads.length})</label>
+                                            <Button size="sm" variant="secondary" onClick={() => addLead(route.id)} className="py-1 px-2 text-xs h-auto"><Plus size={14}/> Add Lead</Button>
+                                        </div>
+                                        
+                                        <div className="space-y-2">
+                                            {route.leads.map((lead, lIndex) => (
+                                                <div key={lead.id} className="flex gap-2 items-start bg-white p-2 rounded border border-gray-200">
+                                                        <div className="w-1/3">
+                                                            <input className="w-full p-2 border border-gray-200 rounded text-sm outline-none focus:border-emerald-500" placeholder="Nome da Empresa/Lead" value={lead.name} onChange={e => updateLead(route.id, lead.id, 'name', e.target.value)} />
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <input className="w-full p-2 border border-gray-200 rounded text-sm outline-none focus:border-emerald-500" placeholder="Objetivo (ex: Apresentar portfólio)" value={lead.objective} onChange={e => updateLead(route.id, lead.id, 'objective', e.target.value)} />
+                                                        </div>
+                                                        <button onClick={() => removeLead(route.id, lead.id)} className="p-2 text-gray-400 hover:text-red-500"><X size={16}/></button>
+                                                </div>
+                                            ))}
+                                            {route.leads.length === 0 && <p className="text-xs text-gray-400 italic">Nenhum lead adicionado. Clique no botão acima.</p>}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <Button variant="secondary" onClick={addRoute} className="w-full border-dashed border-2 hover:border-emerald-300 hover:text-emerald-700" icon={MapPin}>
+                            Adicionar Novo Trecho/Rota
+                        </Button>
+                        </div>
+                    )}
+                </div>
                 </Modal>
             );
         }
 
-        // --- POST EXPEDITION MODAL ---
         function PostExpeditionModal({ expedition, onClose, db, appId, showToast }) {
             const [visits, setVisits] = useState([]);
             const [loading, setLoading] = useState(true);
             const [isSubmitting, setIsSubmitting] = useState(false);
-            const [generalFeedback, setGeneralFeedback] = useState({ objectivesMet: true, summary: '' });
+            
+            const [generalFeedback, setGeneralFeedback] = useState({ objectivesMet: true, summary: '', generalNextSteps: '' });
             const [visitFeedback, setVisitFeedback] = useState({});
 
             useEffect(() => {
@@ -858,119 +943,126 @@
                     const snap = await getDocs(q);
                     const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                     setVisits(data);
-                    const init = {};
-                    data.forEach(v => { init[v.id] = { objectiveMet: true, nextSteps: '', createAction: false }; });
-                    setVisitFeedback(init);
+                    
+                    const initialFeedback = {};
+                    data.forEach(v => { initialFeedback[v.id] = { objectiveMet: true, nextSteps: '', createAction: false }; });
+                    setVisitFeedback(initialFeedback);
                     setLoading(false);
                 };
                 fetchVisits();
-            }, [expedition.id]);
+            }, [expedition.id, db, appId]);
 
-            const updateVisitFb = (id, field, value) => setVisitFeedback(prev => ({ ...prev, [id]: { ...prev[id], [field]: value } }));
+            const updateVisitFb = (id, field, value) => { setVisitFeedback(prev => ({ ...prev, [id]: { ...prev[id], [field]: value } })); };
 
             const handleSubmit = async () => {
                 setIsSubmitting(true);
                 try {
                     const batch = writeBatch(db);
-                    batch.update(doc(db, 'artifacts', appId, 'public', 'data', 'expeditions', expedition.id), { status: 'concluida', postReport: generalFeedback, updatedAt: serverTimestamp() });
+                    const expRef = doc(db, 'artifacts', appId, 'public', 'data', 'expeditions', expedition.id);
+                    batch.update(expRef, { status: 'concluida', postReport: generalFeedback, updatedAt: serverTimestamp() });
+
                     for (const visit of visits) {
                         const feedback = visitFeedback[visit.id];
-                        batch.update(doc(db, 'artifacts', appId, 'public', 'data', 'visits', visit.id), { status: 'realizada', objectiveMet: feedback.objectiveMet, notesPos: feedback.nextSteps });
+                        const visitRef = doc(db, 'artifacts', appId, 'public', 'data', 'visits', visit.id);
+                        // Preserva o status registrado em campo; só converte 'planejada' (não visitada) para 'realizada' no fechamento
+                        const finalStatus = visit.status === 'planejada' ? 'realizada' : visit.status;
+                        batch.update(visitRef, { status: finalStatus, objectiveMet: feedback.objectiveMet, notesPos: feedback.nextSteps });
+
                         if (visit.companyId) {
-                            batch.update(doc(db, 'artifacts', appId, 'public', 'data', 'companies', visit.companyId), { lastVisitDate: new Date().toISOString().split('T')[0], lastVisitOutcome: feedback.objectiveMet ? 'Sucesso' : 'Falhou/Parcial', lastVisitNextSteps: feedback.nextSteps, lastVisitUserName: expedition.userName });
+                            const compRef = doc(db, 'artifacts', appId, 'public', 'data', 'companies', visit.companyId);
+                            batch.update(compRef, {
+                                lastVisitDate: new Date().toISOString().split('T')[0],
+                                lastVisitOutcome: feedback.objectiveMet ? 'Sucesso' : 'Falhou/Parcial',
+                                lastVisitNextSteps: feedback.nextSteps,
+                                lastVisitUserName: expedition.userName
+                            });
                         }
+
                         if (feedback.createAction && feedback.nextSteps.trim()) {
                             const actionRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'actions'));
-                            batch.set(actionRef, { expeditionId: expedition.id, companyId: visit.companyId, companyName: visit.companyName, title: feedback.nextSteps.substring(0, 60), description: feedback.nextSteps, priority: 'media', status: 'aberta', dueDate: new Date(Date.now() + 86400000 * 7).toISOString().split('T')[0], responsibleId: expedition.userId, createdAt: serverTimestamp() });
+                            const actionTitle = feedback.nextSteps.length > 50 
+                                ? feedback.nextSteps.substring(0, 50) + '...' 
+                                : feedback.nextSteps;
+                            batch.set(actionRef, {
+                                expeditionId: expedition.id, companyId: visit.companyId, companyName: visit.companyName,
+                                title: actionTitle, description: feedback.nextSteps,
+                                priority: 'media', status: 'aberta', dueDate: new Date(Date.now() + 86400000 * 7).toISOString().split('T')[0],
+                                responsibleId: expedition.userId, createdAt: serverTimestamp()
+                            });
                         }
                     }
+
                     await batch.commit();
-                    showToast("Relatório salvo! Expedição concluída.");
+                    showToast("Relatório de Pós-Expedição salvo! Ações e empresas atualizadas.");
                     onClose();
-                } catch (err) {
-                    alert("Erro ao salvar: " + err.message);
-                } finally {
-                    setIsSubmitting(false);
-                }
+                } catch (err) { alert("Erro ao salvar fechamento: " + err.message); } finally { setIsSubmitting(false); }
             };
 
             if (loading) return <Modal title="Pós-Expedição" onClose={onClose}><div className="flex justify-center p-8"><Loader2 className="animate-spin text-emerald-600"/></div></Modal>;
 
             return (
                 <Modal title={`Fechamento: ${expedition.title}`} onClose={onClose} footer={
-                    <Button onClick={handleSubmit} disabled={isSubmitting} className="w-full font-bold py-3">
+                    <Button onClick={handleSubmit} disabled={isSubmitting} className="w-full font-bold py-3 text-lg shadow-lg">
                         {isSubmitting ? <Loader2 className="animate-spin"/> : 'Finalizar Expedição e Gerar Ações'}
                     </Button>
                 }>
                     <div className="space-y-8 animate-fade-in">
                         <div>
-                            <h4 className="font-bold text-gray-800 mb-4 border-b pb-2">Resultados por Lead ({visits.length})</h4>
+                            <h4 className="font-bold text-gray-800 mb-4 border-b pb-2">Resultados por Lead/Empresa ({visits.length})</h4>
                             <div className="space-y-4">
                                 {visits.map((visit, idx) => (
                                     <div key={visit.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
                                         <div className="flex justify-between items-start mb-2">
                                             <h5 className="font-bold text-gray-800 text-sm">{idx + 1}. {visit.companyName}</h5>
-                                            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{visit.notesPre}</span>
+                                            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">Objetivo: {visit.notesPre}</span>
                                         </div>
+                                        
                                         <div className="mt-3 space-y-3">
                                             <div className="flex items-center gap-4">
                                                 <label className="text-xs font-medium text-gray-600">Objetivo Cumprido?</label>
                                                 <div className="flex items-center gap-3">
-                                                    <label className="flex items-center gap-1 text-sm cursor-pointer"><input type="radio" checked={visitFeedback[visit.id]?.objectiveMet === true} onChange={() => updateVisitFb(visit.id, 'objectiveMet', true)} /> Sim</label>
-                                                    <label className="flex items-center gap-1 text-sm cursor-pointer"><input type="radio" checked={visitFeedback[visit.id]?.objectiveMet === false} onChange={() => updateVisitFb(visit.id, 'objectiveMet', false)} /> Não</label>
+                                                    <label className="flex items-center gap-1 text-sm cursor-pointer"><input type="radio" checked={visitFeedback[visit.id]?.objectiveMet === true} onChange={() => updateVisitFb(visit.id, 'objectiveMet', true)} className="text-emerald-600 focus:ring-emerald-500" /> Sim</label>
+                                                    <label className="flex items-center gap-1 text-sm cursor-pointer"><input type="radio" checked={visitFeedback[visit.id]?.objectiveMet === false} onChange={() => updateVisitFb(visit.id, 'objectiveMet', false)} className="text-red-500 focus:ring-red-500" /> Não</label>
                                                 </div>
                                             </div>
-                                            <input className="w-full p-2 border border-gray-300 rounded-md text-sm outline-none focus:border-emerald-500" placeholder="Próximos passos / acordos firmados..." value={visitFeedback[visit.id]?.nextSteps || ''} onChange={e => updateVisitFb(visit.id, 'nextSteps', e.target.value)} />
-                                            <div className="flex items-center gap-2">
-                                                <input type="checkbox" id={`action-${visit.id}`} className="rounded text-emerald-600 w-4 h-4 cursor-pointer" checked={visitFeedback[visit.id]?.createAction || false} onChange={e => updateVisitFb(visit.id, 'createAction', e.target.checked)} />
-                                                <label htmlFor={`action-${visit.id}`} className="text-xs text-gray-600 cursor-pointer">Gerar tarefa no Plano de Ação</label>
+                                            <div><input className="w-full p-2 border border-gray-300 rounded-md text-sm outline-none focus:border-emerald-500" placeholder="Descreva os próximos passos / acordos firmados..." value={visitFeedback[visit.id]?.nextSteps} onChange={e => updateVisitFb(visit.id, 'nextSteps', e.target.value)} /></div>
+                                            <div className="flex items-center gap-2 mt-2">
+                                                <input type="checkbox" id={`action-${visit.id}`} className="rounded text-emerald-600 w-4 h-4 cursor-pointer" checked={visitFeedback[visit.id]?.createAction} onChange={(e) => updateVisitFb(visit.id, 'createAction', e.target.checked)} />
+                                                <label htmlFor={`action-${visit.id}`} className="text-xs text-gray-600 font-medium cursor-pointer">Gerar Tarefa no Plano de Ação baseada nos próximos passos</label>
                                             </div>
                                         </div>
                                     </div>
                                 ))}
-                                {visits.length === 0 && <p className="text-sm text-gray-500 italic">Nenhum lead registrado.</p>}
+                                {visits.length === 0 && <p className="text-sm text-gray-500 italic">Nenhum lead registrado para esta expedição.</p>}
                             </div>
                         </div>
+
                         <div className="bg-emerald-50 p-5 rounded-xl border border-emerald-100">
-                            <h4 className="font-bold text-emerald-900 mb-4 flex items-center gap-2"><CheckSquare size={18}/> Avaliação Geral</h4>
-                            <div className="flex gap-2 mb-4">
-                                <button onClick={() => setGeneralFeedback({...generalFeedback, objectivesMet: true})} className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${generalFeedback.objectivesMet ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-gray-600'}`}>Objetivos Atingidos</button>
-                                <button onClick={() => setGeneralFeedback({...generalFeedback, objectivesMet: false})} className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${!generalFeedback.objectivesMet ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-gray-600'}`}>Parcial / Não atingidos</button>
+                            <h4 className="font-bold text-emerald-900 mb-4 flex items-center gap-2"><CheckSquare size={18}/> Avaliação Geral da Viagem</h4>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="text-sm font-medium text-gray-700 block mb-2">Os objetivos macro da expedição foram atingidos?</label>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => setGeneralFeedback({...generalFeedback, objectivesMet: true})} className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${generalFeedback.objectivesMet ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>Sim, atingidos</button>
+                                        <button onClick={() => setGeneralFeedback({...generalFeedback, objectivesMet: false})} className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-colors ${!generalFeedback.objectivesMet ? 'bg-amber-500 text-white border-amber-500' : 'bg-white text-gray-600 hover:bg-gray-50'}`}>Parcial / Não atingidos</button>
+                                    </div>
+                                </div>
+                                <Input label="Resumo Executivo (Opcional)" value={generalFeedback.summary} onChange={e => setGeneralFeedback({...generalFeedback, summary: e.target.value})} placeholder="Breve resumo da percepção do mercado local..." />
                             </div>
-                            <Input label="Resumo Executivo (opcional)" value={generalFeedback.summary} onChange={e => setGeneralFeedback({...generalFeedback, summary: e.target.value})} placeholder="Percepção do mercado, aprendizados..." />
                         </div>
                     </div>
                 </Modal>
             );
         }
 
-        // --- REJECT EXPEDITION MODAL ---
-        function RejectExpeditionModal({ onClose, onConfirm }) {
-            const [reason, setReason] = useState('');
-            return (
-                <Modal title="Reprovar Expedição" onClose={onClose} footer={<Button variant="danger" className="w-full" onClick={() => onConfirm(reason)}>Confirmar Reprovação</Button>}>
-                    <div className="space-y-4">
-                        <p className="text-sm text-gray-600">Informe o motivo para que o executivo possa ajustar o planejamento.</p>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Motivo da Recusa</label>
-                            <textarea className="w-full p-3 border border-red-300 rounded-lg h-32 text-sm outline-none focus:ring-2 focus:ring-red-500 bg-red-50/30" placeholder="Ex: Orçamento acima do limite. Adicione mais empresas na rota 2..." value={reason} onChange={e => setReason(e.target.value)} />
-                        </div>
-                    </div>
-                </Modal>
-            );
-        }
-
-        // --- EXPEDITION DETAIL ---
         function ExpeditionDetail({ expeditionId, expeditions, visits, actions, companies, onBack, db, appId, userProfile, showToast }) {
             const expedition = expeditions.find(e => e.id === expeditionId);
             const [activeTab, setActiveTab] = useState('visitas');
-            const [modalType, setModalType] = useState(null);
+            const [modalType, setModalType] = useState(null); 
             const [selectedVisit, setSelectedVisit] = useState(null);
-            const [isRejecting, setIsRejecting] = useState(false);
-
-            if (!expedition) return <div className="p-8 text-center text-gray-500">Expedição não encontrada.</div>;
-
-            const canManage = userProfile.role === 'gerente' || expedition.userId === userProfile.uid;
+            const [isRejecting, setIsRejecting] = useState(false); 
+            
+            if (!expedition) return <div>Expedição não encontrada</div>;
 
             const handleStatusChange = async (newStatus) => {
                 await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'expeditions', expeditionId), { status: newStatus });
@@ -980,180 +1072,204 @@
             const handleAddVisit = async (companyId) => {
                 const comp = companies.find(c => c.id === companyId);
                 if (!comp) return;
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'visits'), { expeditionId, companyId: comp.id, companyName: comp.name, city: comp.city, status: 'planejada', createdAt: serverTimestamp() });
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'visits'), {
+                    expeditionId, companyId: comp.id, companyName: comp.name, city: comp.city, status: 'planejada', date: new Date().toISOString().split('T')[0], createdAt: serverTimestamp()
+                });
                 showToast("Empresa adicionada ao roteiro");
                 setModalType(null);
             };
 
             return (
                 <div className="space-y-6 pb-20 animate-fade-in">
-                    <div className="flex flex-col gap-4 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <div className="flex items-start justify-between">
-                            <div className="flex items-center gap-4">
-                                <button onClick={onBack} className="p-2 hover:bg-gray-100 rounded-full transition-colors"><ArrowLeft size={20} className="text-gray-600"/></button>
-                                <div>
-                                    <h2 className="text-xl font-bold text-gray-800">{expedition.title}</h2>
-                                    <div className="flex items-center gap-2 mt-1">
-                                        <span className={`px-2 py-0.5 rounded text-xs font-medium border ${getStatusColor(expedition.status, 'expedition')}`}>{expedition.status.replace('_', ' ')}</span>
-                                        <span className="text-gray-400 text-xs">•</span>
-                                        <span className="text-gray-500 text-xs flex items-center gap-1"><MapPin size={12}/> {expedition.region}</span>
-                                        {userProfile.role === 'gerente' && <><span className="text-gray-400 text-xs">•</span><span className="text-gray-500 text-xs flex items-center gap-1"><UserCircle size={12}/> {expedition.userName}</span></>}
-                                    </div>
-                                </div>
+                <div className="flex flex-col gap-4 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-4">
+                            <button onClick={onBack} className="p-2 hover:bg-gray-100 rounded-full transition-colors"><ArrowLeft size={20} className="text-gray-600"/></button>
+                            <div>
+                            <h2 className="text-xl font-bold text-gray-800 leading-tight">{expedition.title}</h2>
+                            <div className="flex items-center gap-2 mt-1">
+                                <span className={`px-2 py-0.5 rounded text-xs font-medium border ${getStatusColor(expedition.status, 'expedition')}`}>{expedition.status.replace('_', ' ')}</span>
+                                <span className="text-gray-400 text-xs">•</span>
+                                <span className="text-gray-500 text-xs flex items-center gap-1"><MapPin size={12}/> {expedition.region}</span>
                             </div>
-                            <div className="flex gap-2 flex-wrap justify-end">
-                                {expedition.status === 'aguardando_aprovacao' && userProfile.role === 'gerente' && (
-                                    <>
-                                        <Button variant="danger" size="sm" onClick={() => setIsRejecting(true)}>Reprovar</Button>
-                                        <Button size="sm" onClick={() => handleStatusChange('planejada')}>Aprovar</Button>
-                                    </>
-                                )}
-                                {expedition.status === 'devolvida' && canManage && (
-                                    <Button size="sm" className="bg-purple-600 hover:bg-purple-700" onClick={() => { updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'expeditions', expeditionId), { status: 'aguardando_aprovacao', rejectionReason: null }); showToast("Reenviada para aprovação!"); }}>Reenviar</Button>
-                                )}
-                                {expedition.status === 'planejada' && canManage && <Button size="sm" onClick={() => handleStatusChange('em_andamento')}>Iniciar Viagem</Button>}
-                                {expedition.status === 'em_andamento' && canManage && <Button size="sm" className="bg-emerald-700" onClick={() => setModalType('fechar_expedicao')}>Concluir Viagem</Button>}
+                            </div>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                        {expedition.status === 'aguardando_aprovacao' && userProfile.role === 'gerente' && (
+                            <>
+                                <Button variant="danger" size="sm" onClick={() => setIsRejecting(true)}>Devolver (Reprovar)</Button>
+                                <Button size="sm" onClick={() => handleStatusChange('planejada')}>Aprovar Expedição</Button>
+                            </>
+                        )}
+                        {expedition.status === 'devolvida' && userProfile.role === 'executivo' && (
+                            <Button size="sm" className="bg-purple-600 hover:bg-purple-700" onClick={() => {
+                                updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'expeditions', expeditionId), { status: 'aguardando_aprovacao', rejectionReason: null });
+                                showToast("Reenviada para aprovação!");
+                            }}>Reenviar p/ Aprovação</Button>
+                        )}
+                        {expedition.status === 'planejada' && <Button size="sm" onClick={() => handleStatusChange('em_andamento')}>Iniciar Viagem</Button>}
+                        {expedition.status === 'em_andamento' && <Button size="sm" className="bg-emerald-700" onClick={() => setModalType('fechar_expedicao')}>Concluir Viagem</Button>}
+                    </div>
+                    </div>
+
+                    {expedition.status === 'devolvida' && expedition.rejectionReason && (
+                        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl shadow-sm">
+                            <div className="flex gap-3 items-start">
+                                <AlertTriangle size={20} className="text-red-500 mt-0.5" />
+                                <div><h4 className="font-bold text-red-800 text-sm">Expedição devolvida para ajustes</h4><p className="text-red-700 text-sm mt-1">{expedition.rejectionReason}</p></div>
                             </div>
                         </div>
+                    )}
 
-                        {expedition.status === 'devolvida' && expedition.rejectionReason && (
-                            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl">
-                                <div className="flex gap-3 items-start">
-                                    <AlertTriangle size={20} className="text-red-500 mt-0.5" />
-                                    <div>
-                                        <h4 className="font-bold text-red-800 text-sm">Expedição devolvida para ajustes</h4>
-                                        <p className="text-red-700 text-sm mt-1">{expedition.rejectionReason}</p>
-                                    </div>
+                    {expedition.costs && (
+                    <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 mt-4">
+                        <h3 className="font-bold text-slate-800 mb-4 text-sm uppercase flex items-center gap-2"><BarChart3 size={16} className="text-emerald-600"/> Resumo do Planejamento (Aprovação)</h3>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                            <div className="bg-white p-3.5 rounded-lg shadow-sm border border-slate-100"><span className="block text-[10px] text-gray-500 uppercase font-bold mb-1">Custo Total Estimado</span><p className="text-xl font-black text-emerald-700">R$ {expedition.totals?.cost?.toFixed(2) || '0.00'}</p></div>
+                            <div className="bg-white p-3.5 rounded-lg shadow-sm border border-slate-100"><span className="block text-[10px] text-gray-500 uppercase font-bold mb-1">Distância Total</span><p className="text-xl font-black text-blue-700">{expedition.totals?.km || 0} KM</p></div>
+                            <div className="bg-white p-3.5 rounded-lg shadow-sm border border-slate-100"><span className="block text-[10px] text-gray-500 uppercase font-bold mb-1">Combustível Estimado</span><p className="text-xl font-black text-amber-600">R$ {expedition.costs?.totalFuelCost?.toFixed(2) || '0.00'}</p></div>
+                            <div className="bg-white p-3.5 rounded-lg shadow-sm border border-slate-100"><span className="block text-[10px] text-gray-500 uppercase font-bold mb-1">Outros (Voos, Hosp...)</span><p className="text-xl font-black text-purple-600">R$ {((expedition.totals?.cost || 0) - (expedition.costs?.totalFuelCost || 0)).toFixed(2)}</p></div>
+                        </div>
+                        <h4 className="font-bold text-slate-700 text-xs mb-3 uppercase tracking-wide">Desdobramento de Trechos & Leads</h4>
+                        <div className="space-y-2.5">
+                            {expedition.routes?.map((r, i) => (
+                                <div key={i} className="flex flex-col md:flex-row md:justify-between md:items-center bg-white p-3 rounded-lg border border-slate-200 text-sm shadow-sm gap-2">
+                                <span className="flex items-center gap-2 text-gray-700"><span className="bg-slate-100 text-slate-500 text-xs font-bold px-2 py-1 rounded">#{i+1}</span>{r.from} <ArrowRight size={14} className="text-gray-400"/> {r.to}</span>
+                                <div className="flex gap-4 text-xs"><span className="flex items-center gap-1.5 text-gray-500 bg-gray-50 px-2 py-1 rounded border border-gray-100"><MapPin size={12}/> {r.distance} KM</span><span className="flex items-center gap-1.5 font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded border border-emerald-100"><Briefcase size={12}/> {r.leadsCount || 0} Leads</span></div>
                                 </div>
+                            ))}
+                            {(!expedition.routes || expedition.routes.length === 0) && <p className="text-sm text-gray-400 italic">Nenhum trecho detalhado.</p>}
+                        </div>
+                    </div>
+                    )}
+
+                    <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden mt-4">
+                        <div className="bg-emerald-500 h-full transition-all duration-500" style={{ width: `${visits.length > 0 ? (visits.filter(v => v.status === 'realizada').length / visits.length) * 100 : 0}%` }} />
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-500">
+                        <span>{visits.filter(v => v.status === 'realizada').length} de {visits.length} visitas realizadas</span>
+                        <span>{Math.round(visits.length > 0 ? (visits.filter(v => v.status === 'realizada').length / visits.length) * 100 : 0)}%</span>
+                    </div>
+                </div>
+
+                <div className="flex border-b border-gray-200">
+                    <button onClick={() => setActiveTab('visitas')} className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'visitas' ? 'border-emerald-600 text-emerald-700' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>Roteiro & Visitas</button>
+                    <button onClick={() => setActiveTab('plano')} className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'plano' ? 'border-emerald-600 text-emerald-700' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>Plano de Ação ({actions.length})</button>
+                </div>
+
+                {activeTab === 'visitas' && (
+                    <div className="space-y-4 animate-slide-up">
+                    <Button variant="secondary" onClick={() => setModalType('add_company')} className="w-full border-dashed border-2 text-gray-500 hover:text-emerald-600 hover:border-emerald-200" icon={Plus}>Adicionar empresa ao roteiro</Button>
+
+                    {visits.map(visit => (
+                        <div key={visit.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+                            <div className="p-5">
+                            <div className="flex justify-between items-start mb-3">
+                                <div><h3 className="font-bold text-gray-800 text-lg">{visit.companyName}</h3><p className="text-gray-500 text-sm flex items-center gap-1 mt-0.5"><MapPin size={12}/> {visit.city}</p></div>
+                                <span className={`px-2 py-1 rounded text-xs font-medium border ${getStatusColor(visit.status, 'visit')}`}>{visit.status.replace('_', ' ')}</span>
                             </div>
-                        )}
+                            
+                            {visit.status === 'realizada' ? (
+                                <div className="bg-emerald-50/50 p-3 rounded-lg border border-emerald-100 text-sm text-gray-700 mb-4"><strong className="text-emerald-800 text-xs uppercase block mb-1">Relatório de Visita</strong>{visit.notesPos || "Sem anotações."}</div>
+                            ) : visit.status === 'nao_ocorreu' ? (
+                                <div className="bg-red-50/50 p-3 rounded-lg border border-red-100 text-sm text-gray-700 mb-4"><strong className="text-red-800 text-xs uppercase block mb-1">Visita Não Ocorreu</strong>{visit.notesPos || "Sem anotações."}</div>
+                            ) : (
+                                <div className="bg-amber-50/50 p-3 rounded-lg border border-amber-100 text-sm text-gray-700 mb-4"><strong className="text-amber-800 text-xs uppercase block mb-1">Objetivo Pré-Visita</strong>{visit.notesPre || "Não definido"}</div>
+                            )}
 
-                        {expedition.costs && (
-                            <div className="bg-slate-50 p-5 rounded-xl border border-slate-200">
-                                <h3 className="font-bold text-slate-800 mb-4 text-sm uppercase flex items-center gap-2"><BarChart3 size={16} className="text-emerald-600"/> Resumo do Planejamento</h3>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                                    <div className="bg-white p-3.5 rounded-lg shadow-sm border border-slate-100"><span className="block text-[10px] text-gray-500 uppercase font-bold mb-1">Custo Total Est.</span><p className="text-xl font-black text-emerald-700">R$ {expedition.totals?.cost?.toFixed(2) || '0.00'}</p></div>
-                                    <div className="bg-white p-3.5 rounded-lg shadow-sm border border-slate-100"><span className="block text-[10px] text-gray-500 uppercase font-bold mb-1">Distância Total</span><p className="text-xl font-black text-blue-700">{expedition.totals?.km || 0} KM</p></div>
-                                    <div className="bg-white p-3.5 rounded-lg shadow-sm border border-slate-100"><span className="block text-[10px] text-gray-500 uppercase font-bold mb-1">Combustível Est.</span><p className="text-xl font-black text-amber-600">R$ {expedition.costs?.totalFuelCost?.toFixed(2) || '0.00'}</p></div>
-                                    <div className="bg-white p-3.5 rounded-lg shadow-sm border border-slate-100"><span className="block text-[10px] text-gray-500 uppercase font-bold mb-1">Outros Custos</span><p className="text-xl font-black text-purple-600">R$ {((expedition.totals?.cost || 0) - (expedition.costs?.totalFuelCost || 0)).toFixed(2)}</p></div>
-                                </div>
-                                {expedition.routes && expedition.routes.length > 0 && (
-                                    <div className="space-y-2">
-                                        {expedition.routes.map((r, i) => (
-                                            <div key={i} className="flex flex-col md:flex-row md:justify-between md:items-center bg-white p-3 rounded-lg border border-slate-200 text-sm gap-2">
-                                                <span className="flex items-center gap-2 text-gray-700"><span className="bg-slate-100 text-slate-500 text-xs font-bold px-2 py-1 rounded">#{i+1}</span> {r.from} <ArrowRight size={14} className="text-gray-400"/> {r.to}</span>
-                                                <div className="flex gap-4 text-xs">
-                                                    <span className="flex items-center gap-1.5 text-gray-500 bg-gray-50 px-2 py-1 rounded border border-gray-100"><MapPin size={12}/> {r.distance} KM</span>
-                                                    <span className="flex items-center gap-1.5 font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded border border-emerald-100"><Briefcase size={12}/> {r.leadsCount || 0} Leads</span>
+                            <div className="flex gap-3 mt-4">
+                                {visit.status === 'planejada' ? (
+                                    <Button variant="primary" onClick={() => { setSelectedVisit(visit); setModalType('visit_details'); }} className="flex-1 text-sm">Registrar Visita</Button>
+                                ) : (
+                                    <Button variant="secondary" onClick={() => { setSelectedVisit(visit); setModalType('visit_details'); }} className="flex-1 text-sm text-gray-600">Ver Detalhes / Editar</Button>
+                                )}
+                            </div>
+                            </div>
+                        </div>
+                    ))}
+                    </div>
+                )}
+
+                {activeTab === 'plano' && (
+                    <div className="space-y-6 animate-slide-up">
+                    <div className="flex justify-between items-center bg-gray-100 p-4 rounded-lg">
+                        <div><p className="text-xs text-gray-500 font-bold uppercase">Progresso do Plano</p><p className="text-2xl font-bold text-gray-800">{actions.length > 0 ? Math.round((actions.filter(a=>a.status === 'concluida').length / actions.length) * 100) : 0}%</p></div>
+                        <Button onClick={() => setModalType('new_action')} size="sm" icon={Plus}>Nova Ação</Button>
+                    </div>
+                        
+                    <div className="space-y-4">
+                        {['aberta', 'em_andamento', 'concluida'].map(status => {
+                            const filtered = actions.filter(a => a.status === status);
+                            if (filtered.length === 0) return null;
+                            
+                            return (
+                                <div key={status}>
+                                    <h4 className="text-xs font-bold text-gray-400 uppercase mb-3 flex items-center gap-2">{status === 'concluida' ? <CheckCircle2 size={14}/> : <Clock size={14}/>}{status.replace('_', ' ')}</h4>
+                                    <div className="space-y-3">
+                                        {filtered.map(action => (
+                                            <div key={action.id} className={`bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex gap-3 transition-all ${status === 'concluida' ? 'bg-emerald-50/40 border-emerald-100 opacity-80' : ''}`}>
+                                                <div className={`mt-1 w-1.5 self-stretch rounded-full shrink-0 ${status === 'concluida' ? 'bg-emerald-500' : action.priority === 'alta' ? 'bg-red-500' : action.priority === 'media' ? 'bg-amber-400' : 'bg-blue-400'}`} />
+                                                <div className="flex-1">
+                                                    <div className="flex justify-between items-start">
+                                                        <h5 className={`font-bold text-sm ${status === 'concluida' ? 'text-emerald-900 line-through decoration-emerald-300' : 'text-gray-800'}`}>{action.title}</h5>
+                                                        {status !== 'concluida' && <button onClick={() => { updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'actions', action.id), { status: 'concluida' }); showToast("Ação concluída!"); }} className="text-gray-300 hover:text-emerald-500 transition-colors"><CheckSquare size={18}/></button>}
+                                                    </div>
+                                                    <p className="text-xs text-gray-500 mt-1">{action.companyName}</p>
+                                                    <div className="flex items-center gap-2 mt-2"><span className="text-xs px-2 py-0.5 bg-gray-100 rounded text-gray-600">Vence: {formatDate(action.dueDate)}</span></div>
                                                 </div>
                                             </div>
                                         ))}
                                     </div>
-                                )}
-                            </div>
-                        )}
-
-                        <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                            <div className="bg-emerald-500 h-full transition-all duration-500" style={{ width: `${visits.length > 0 ? (visits.filter(v => v.status === 'realizada').length / visits.length) * 100 : 0}%` }} />
-                        </div>
-                        <div className="flex justify-between text-xs text-gray-500">
-                            <span>{visits.filter(v => v.status === 'realizada').length} de {visits.length} visitas realizadas</span>
-                            <span>{Math.round(visits.length > 0 ? (visits.filter(v => v.status === 'realizada').length / visits.length) * 100 : 0)}%</span>
-                        </div>
-                    </div>
-
-                    <div className="flex border-b border-gray-200">
-                        <button onClick={() => setActiveTab('visitas')} className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'visitas' ? 'border-emerald-600 text-emerald-700' : 'border-transparent text-gray-500'}`}>Roteiro & Visitas</button>
-                        <button onClick={() => setActiveTab('plano')} className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === 'plano' ? 'border-emerald-600 text-emerald-700' : 'border-transparent text-gray-500'}`}>Plano de Ação ({actions.length})</button>
-                    </div>
-
-                    {activeTab === 'visitas' && (
-                        <div className="space-y-4 animate-slide-up">
-                            {canManage && (
-                                <Button variant="secondary" onClick={() => setModalType('add_company')} className="w-full border-dashed border-2 text-gray-500 hover:text-emerald-600 hover:border-emerald-200" icon={Plus}>Adicionar empresa ao roteiro</Button>
-                            )}
-                            {visits.map(visit => (
-                                <div key={visit.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-                                    <div className="p-5">
-                                        <div className="flex justify-between items-start mb-3">
-                                            <div>
-                                                <h3 className="font-bold text-gray-800 text-lg">{visit.companyName}</h3>
-                                                <p className="text-gray-500 text-sm flex items-center gap-1 mt-0.5"><MapPin size={12}/> {visit.city}</p>
-                                            </div>
-                                            <span className={`px-2 py-1 rounded text-xs font-medium border ${getStatusColor(visit.status, 'visit')}`}>{visit.status.replace('_', ' ')}</span>
-                                        </div>
-                                        {visit.status === 'realizada' ? (
-                                            <div className="bg-emerald-50/50 p-3 rounded-lg border border-emerald-100 text-sm text-gray-700 mb-4"><strong className="text-emerald-800 text-xs uppercase block mb-1">Relatório</strong>{visit.notesPos || "Sem anotações."}</div>
-                                        ) : (
-                                            <div className="bg-amber-50/50 p-3 rounded-lg border border-amber-100 text-sm text-gray-700 mb-4"><strong className="text-amber-800 text-xs uppercase block mb-1">Objetivo</strong>{visit.notesPre || "Não definido"}</div>
-                                        )}
-                                        {canManage && (
-                                            <Button variant={visit.status === 'planejada' ? 'primary' : 'secondary'} onClick={() => { setSelectedVisit(visit); setModalType('visit_details'); }} className="flex-1 text-sm w-full">
-                                                {visit.status === 'planejada' ? 'Registrar Visita' : 'Ver Detalhes / Editar'}
-                                            </Button>
-                                        )}
-                                    </div>
                                 </div>
+                            );
+                        })}
+                    </div>
+                    </div>
+                )}
+
+                {modalType === 'fechar_expedicao' && <PostExpeditionModal expedition={expedition} onClose={() => { setModalType(null); onBack(); }} db={db} appId={appId} showToast={showToast} />}
+                {modalType === 'add_company' && (
+                    <Modal title="Selecionar Empresa" onClose={() => setModalType(null)}>
+                        <div className="space-y-2">
+                            {companies.filter(c => !visits.some(v => v.companyId === c.id)).map(comp => (
+                                <button key={comp.id} onClick={() => handleAddVisit(comp.id)} className="w-full text-left p-3 hover:bg-emerald-50 rounded-lg border border-transparent hover:border-emerald-100 flex justify-between items-center group">
+                                    <span className="font-medium text-gray-700 group-hover:text-emerald-800">{comp.name}</span><Plus size={16} className="text-gray-300 group-hover:text-emerald-600"/>
+                                </button>
                             ))}
+                            {companies.length === 0 && <p className="text-center text-gray-500 py-4">Nenhuma empresa disponível.</p>}
                         </div>
-                    )}
-
-                    {activeTab === 'plano' && (
-                        <div className="space-y-6 animate-slide-up">
-                            <div className="flex justify-between items-center bg-gray-100 p-4 rounded-lg">
-                                <div><p className="text-xs text-gray-500 font-bold uppercase">Progresso</p><p className="text-2xl font-bold text-gray-800">{actions.length > 0 ? Math.round((actions.filter(a=>a.status==='concluida').length/actions.length)*100) : 0}%</p></div>
-                                {canManage && <Button onClick={() => setModalType('new_action')} size="sm" icon={Plus}>Nova Ação</Button>}
-                            </div>
-                            {['aberta', 'em_andamento', 'concluida'].map(status => {
-                                const filtered = actions.filter(a => a.status === status);
-                                if (filtered.length === 0) return null;
-                                return (
-                                    <div key={status}>
-                                        <h4 className="text-xs font-bold text-gray-400 uppercase mb-3 flex items-center gap-2">{status === 'concluida' ? <CheckCircle2 size={14}/> : <Clock size={14}/>}{status.replace('_', ' ')}</h4>
-                                        <div className="space-y-3">
-                                            {filtered.map(action => (
-                                                <div key={action.id} className={`bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex gap-3 ${status === 'concluida' ? 'opacity-70' : ''}`}>
-                                                    <div className={`mt-1 w-1.5 self-stretch rounded-full shrink-0 ${status === 'concluida' ? 'bg-emerald-500' : action.priority === 'alta' ? 'bg-red-500' : action.priority === 'media' ? 'bg-amber-400' : 'bg-blue-400'}`} />
-                                                    <div className="flex-1">
-                                                        <div className="flex justify-between items-start">
-                                                            <h5 className={`font-bold text-sm ${status === 'concluida' ? 'line-through text-gray-500' : 'text-gray-800'}`}>{action.title}</h5>
-                                                            {status !== 'concluida' && <button onClick={() => { updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'actions', action.id), { status: 'concluida' }); showToast("Ação concluída!"); }} className="text-gray-300 hover:text-emerald-500"><CheckSquare size={18}/></button>}
-                                                        </div>
-                                                        <p className="text-xs text-gray-500 mt-1">{action.companyName}</p>
-                                                        <span className="text-xs px-2 py-0.5 bg-gray-100 rounded text-gray-600 inline-block mt-2">Vence: {formatDate(action.dueDate)}</span>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                            {actions.length === 0 && <div className="text-center py-10 text-gray-400">Nenhuma ação criada para esta expedição.</div>}
-                        </div>
-                    )}
-
-                    {modalType === 'fechar_expedicao' && <PostExpeditionModal expedition={expedition} onClose={() => { setModalType(null); onBack(); }} db={db} appId={appId} showToast={showToast} />}
-                    {modalType === 'add_company' && (
-                        <Modal title="Adicionar Empresa ao Roteiro" onClose={() => setModalType(null)}>
-                            <div className="space-y-2">
-                                {companies.filter(c => !visits.some(v => v.companyId === c.id)).map(comp => (
-                                    <button key={comp.id} onClick={() => handleAddVisit(comp.id)} className="w-full text-left p-3 hover:bg-emerald-50 rounded-lg border border-transparent hover:border-emerald-100 flex justify-between items-center group">
-                                        <span className="font-medium text-gray-700 group-hover:text-emerald-800">{comp.name}</span>
-                                        <Plus size={16} className="text-gray-300 group-hover:text-emerald-600"/>
-                                    </button>
-                                ))}
-                                {companies.length === 0 && <p className="text-center text-gray-500 py-4">Nenhuma empresa disponível.</p>}
-                            </div>
-                        </Modal>
-                    )}
-                    {modalType === 'visit_details' && selectedVisit && <VisitDetailModal visit={selectedVisit} onClose={() => { setModalType(null); setSelectedVisit(null); }} db={db} appId={appId} user={userProfile} showToast={showToast} />}
-                    {modalType === 'new_action' && <ActionFormModal onClose={() => setModalType(null)} db={db} appId={appId} user={userProfile} initialData={{ expeditionId: expedition.id }} companies={companies} showToast={showToast} />}
-                    {isRejecting && <RejectExpeditionModal onClose={() => setIsRejecting(false)} onConfirm={async (reason) => { if(!reason) return alert("Informe o motivo."); await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'expeditions', expedition.id), { status: 'devolvida', rejectionReason: reason }); showToast("Expedição devolvida.", "error"); setIsRejecting(false); }} />}
+                    </Modal>
+                )}
+                {modalType === 'visit_details' && selectedVisit && <VisitDetailModal visit={selectedVisit} onClose={() => { setModalType(null); setSelectedVisit(null); }} db={db} appId={appId} user={userProfile} showToast={showToast} />}
+                {modalType === 'new_action' && <ActionFormModal onClose={() => setModalType(null)} db={db} appId={appId} user={userProfile} initialData={{ expeditionId: expedition.id }} companies={companies} showToast={showToast} />}
+                {isRejecting && (
+                    <RejectExpeditionModal onClose={() => setIsRejecting(false)} onConfirm={async (reason) => {
+                        if(!reason) return alert("Informe o motivo da reprovação.");
+                        await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'expeditions', expedition.id), { status: 'devolvida', rejectionReason: reason });
+                        showToast("Expedição devolvida para ajustes.", "error");
+                        setIsRejecting(false);
+                    }}/>
+                )}
                 </div>
             );
         }
 
-        // --- VISIT DETAIL MODAL ---
+        function RejectExpeditionModal({ onClose, onConfirm }) {
+            const [reason, setReason] = useState('');
+            return (
+                <Modal title="Reprovar Expedição" onClose={onClose} footer={<Button variant="danger" className="w-full" onClick={() => onConfirm(reason)}>Confirmar Reprovação e Notificar</Button>}>
+                    <div className="space-y-4">
+                        <p className="text-sm text-gray-600">Por favor, informe o motivo da devolução para que o executivo possa ajustar o planejamento adequadamente.</p>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Motivo da Recusa / Ajustes Necessários</label>
+                            <textarea className="w-full p-3 border border-red-300 rounded-lg h-32 text-sm outline-none focus:ring-2 focus:ring-red-500 bg-red-50/30" placeholder="Ex: Orçamento acima do limite..." value={reason} onChange={e => setReason(e.target.value)} />
+                        </div>
+                    </div>
+                </Modal>
+            );
+        }
+
         function VisitDetailModal({ visit, onClose, db, appId, user, showToast }) {
             const [status, setStatus] = useState(visit.status);
             const [notesPos, setNotesPos] = useState(visit.notesPos || '');
@@ -1165,7 +1281,9 @@
                 onClose();
             };
 
-            if (showActionForm) return <ActionFormModal onClose={() => setShowActionForm(false)} db={db} appId={appId} user={user} initialData={{ companyId: visit.companyId, companyName: visit.companyName, expeditionId: visit.expeditionId }} companies={[]} showToast={showToast} />;
+            if (showActionForm) {
+                return <ActionFormModal onClose={() => setShowActionForm(false)} db={db} appId={appId} user={user} initialData={{ companyId: visit.companyId, companyName: visit.companyName, expeditionId: visit.expeditionId }} companies={[]} showToast={showToast} />;
+            }
 
             return (
                 <Modal title={visit.companyName} onClose={onClose} footer={<Button onClick={handleSave} className="w-full">Salvar Registros</Button>}>
@@ -1174,16 +1292,17 @@
                             <label className="block text-sm font-medium text-gray-700 mb-2">Status da Visita</label>
                             <div className="flex rounded-lg bg-gray-100 p-1">
                                 {['planejada', 'realizada', 'nao_ocorreu'].map(s => (
-                                    <button key={s} onClick={() => setStatus(s)} className={`flex-1 py-2 text-xs font-medium rounded-md capitalize transition-all ${status === s ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-500'}`}>{s.replace('_', ' ')}</button>
+                                    <button key={s} onClick={() => setStatus(s)} className={`flex-1 py-2 text-xs font-medium rounded-md capitalize transition-all ${status === s ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>{s.replace('_', ' ')}</button>
                                 ))}
                             </div>
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">Relatório / Observações</label>
-                            <textarea className="w-full p-3 border border-gray-300 rounded-lg h-32 text-sm outline-none focus:ring-2 focus:ring-emerald-500" placeholder="O que foi discutido, oportunidades, etc." value={notesPos} onChange={e => setNotesPos(e.target.value)} />
+                            <textarea className="w-full p-3 border border-gray-300 rounded-lg h-32 text-sm outline-none focus:ring-2 focus:ring-emerald-500" placeholder="Descreva o que foi discutido..." value={notesPos} onChange={e => setNotesPos(e.target.value)} />
                         </div>
                         <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
                             <h4 className="font-bold text-blue-800 text-sm mb-2">Gerar Ação Imediata</h4>
+                            <p className="text-xs text-blue-600 mb-3">Identificou uma oportunidade? Crie uma tarefa agora.</p>
                             <Button size="sm" variant="secondary" onClick={() => setShowActionForm(true)} className="w-full text-blue-700 border-blue-200 hover:bg-blue-100">+ Criar Plano de Ação</Button>
                         </div>
                     </div>
@@ -1191,7 +1310,6 @@
             );
         }
 
-        // --- ACTION FORM MODAL ---
         function ActionFormModal({ onClose, db, appId, user, initialData, companies, showToast }) {
             const [formData, setFormData] = useState({ title: '', description: '', priority: 'media', dueDate: '', companyId: initialData?.companyId || '', ...initialData });
 
@@ -1199,7 +1317,7 @@
                 if (!formData.title || !formData.companyId) return alert("Preencha título e empresa");
                 const companyName = formData.companyName || companies.find(c => c.id === formData.companyId)?.name || 'Geral';
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'actions'), { ...formData, companyName, responsibleId: user?.uid || 'user', status: 'aberta', createdAt: serverTimestamp() });
-                showToast("Ação criada!");
+                showToast("Ação criada com sucesso!");
                 onClose();
             };
 
@@ -1208,21 +1326,17 @@
                     <div className="space-y-4">
                         <Input label="O que deve ser feito?" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="Ex: Enviar proposta comercial" />
                         {!initialData?.companyId && (
-                            <Select label="Empresa" value={formData.companyId} onChange={e => setFormData({...formData, companyId: e.target.value})}>
+                            <Select label="Empresa Relacionada" value={formData.companyId} onChange={e => setFormData({...formData, companyId: e.target.value})}>
                                 <option value="">Selecione...</option>
                                 {companies?.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                             </Select>
                         )}
                         <div className="grid grid-cols-2 gap-4">
-                            <Select label="Prioridade" value={formData.priority} onChange={e => setFormData({...formData, priority: e.target.value})}>
-                                <option value="baixa">Baixa</option>
-                                <option value="media">Média</option>
-                                <option value="alta">Alta</option>
-                            </Select>
-                            <Input label="Prazo" type="date" value={formData.dueDate} onChange={e => setFormData({...formData, dueDate: e.target.value})} />
+                            <Select label="Prioridade" value={formData.priority} onChange={e => setFormData({...formData, priority: e.target.value})}><option value="baixa">Baixa</option><option value="media">Média</option><option value="alta">Alta</option></Select>
+                            <Input label="Prazo Limite" type="date" value={formData.dueDate} onChange={e => setFormData({...formData, dueDate: e.target.value})} />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Descrição</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">Descrição Detalhada</label>
                             <textarea className="w-full p-3 border border-gray-300 rounded-lg h-24 text-sm outline-none focus:ring-2 focus:ring-emerald-500" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
                         </div>
                     </div>
@@ -1230,7 +1344,6 @@
             );
         }
 
-        // --- ACTION PLAN GLOBAL ---
         function ActionPlanGlobal({ actions, userProfile, db, appId, companies, user, showToast }) {
             const myActions = actions.filter(a => userProfile.role === 'gerente' || a.responsibleId === userProfile.uid);
             const [isModalOpen, setIsModalOpen] = useState(false);
@@ -1243,42 +1356,45 @@
                         <Button onClick={() => setIsModalOpen(true)} icon={Plus} className="hidden md:flex">Nova Ação</Button>
                         <button onClick={() => setIsModalOpen(true)} className="md:hidden bg-emerald-600 text-white p-2 rounded-full shadow-lg"><Plus size={24}/></button>
                     </div>
-                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+
+                    <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
                         {['all', 'aberta', 'em_andamento', 'concluida'].map(s => (
                             <button key={s} onClick={() => setFilterStatus(s)} className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filterStatus === s ? 'bg-emerald-600 text-white' : 'bg-white text-gray-600 border border-gray-200'}`}>{s === 'all' ? 'Todas' : s.replace('_', ' ')}</button>
                         ))}
                     </div>
+
                     <div className="grid md:grid-cols-3 gap-6 flex-1 overflow-y-auto">
-                        {['aberta', 'em_andamento', 'concluida'].map(status => (
+                    {['aberta', 'em_andamento', 'concluida'].map(status => {
+                        return (
                             <div key={status} className={`flex flex-col h-full ${filterStatus !== 'all' && filterStatus !== status ? 'hidden md:flex' : ''}`}>
-                                <div className={`p-3 rounded-t-lg font-bold text-sm text-center uppercase tracking-wider flex items-center justify-center gap-2 ${status === 'aberta' ? 'bg-gray-200 text-gray-700' : status === 'em_andamento' ? 'bg-blue-100 text-blue-800' : 'bg-emerald-100 text-emerald-800'}`}>
-                                    {status.replace('_', ' ')} <span className="bg-white/50 px-2 py-0.5 rounded-full text-xs">{myActions.filter(a => a.status === status).length}</span>
-                                </div>
-                                <div className="bg-gray-100 p-3 rounded-b-lg flex-1 space-y-3 min-h-[200px]">
-                                    {myActions.filter(a => a.status === status).map(action => (
-                                        <div key={action.id} className={`bg-white p-4 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow relative ${status === 'concluida' ? 'opacity-75' : ''}`}>
-                                            <div className={`absolute left-0 top-4 bottom-4 w-1 rounded-r-full ${status === 'concluida' ? 'bg-emerald-500' : action.priority === 'alta' ? 'bg-red-500' : action.priority === 'media' ? 'bg-amber-400' : 'bg-blue-400'}`} />
-                                            <div className="pl-3">
-                                                <p className={`font-bold text-sm leading-snug ${status === 'concluida' ? 'line-through text-gray-500' : 'text-gray-800'}`}>{action.title}</p>
-                                                <p className="text-xs text-gray-500 mt-1 truncate">{action.companyName}</p>
-                                                <div className="flex justify-between items-end mt-3 border-t border-gray-50 pt-2">
-                                                    <div className="text-xs font-medium text-gray-400 flex items-center gap-1"><Calendar size={12}/> {formatDate(action.dueDate)}</div>
-                                                    {status !== 'concluida' && <button onClick={() => { updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'actions', action.id), { status: 'concluida' }); showToast("Concluído!"); }} className="text-gray-300 hover:text-emerald-500 transition-colors p-1"><CheckSquare size={18}/></button>}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                    {myActions.filter(a => a.status === status).length === 0 && <div className="text-center text-gray-400 text-xs py-10 italic">Nenhuma ação nesta etapa</div>}
-                                </div>
+                            <div className={`p-3 rounded-t-lg font-bold text-sm text-center uppercase tracking-wider flex items-center justify-center gap-2 ${status === 'aberta' ? 'bg-gray-200 text-gray-700' : status === 'em_andamento' ? 'bg-blue-100 text-blue-800' : 'bg-emerald-100 text-emerald-800'}`}>
+                                {status.replace('_', ' ')} <span className="bg-white/50 px-2 py-0.5 rounded-full text-xs">{myActions.filter(a => a.status === status).length}</span>
                             </div>
-                        ))}
+                            <div className="bg-gray-100 p-3 rounded-b-lg flex-1 space-y-3 min-h-[200px]">
+                                {myActions.filter(a => a.status === status).map(action => (
+                                    <div key={action.id} className={`bg-white p-4 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow group animate-fade-in relative ${status === 'concluida' ? 'bg-emerald-50/40 border-emerald-100 opacity-80' : ''}`}>
+                                    <div className={`absolute left-0 top-4 bottom-4 w-1 rounded-r-full ${status === 'concluida' ? 'bg-emerald-500' : action.priority === 'alta' ? 'bg-red-500' : action.priority === 'media' ? 'bg-amber-400' : 'bg-blue-400'}`} />
+                                    <div className="pl-3">
+                                            <p className={`font-bold text-sm leading-snug ${status === 'concluida' ? 'text-emerald-900 line-through decoration-emerald-300' : 'text-gray-800'}`}>{action.title}</p>
+                                            <p className="text-xs text-gray-500 mt-1 truncate">{action.companyName}</p>
+                                            <div className="flex justify-between items-end mt-3 border-t border-gray-50 pt-2">
+                                                <div className="text-xs font-medium text-gray-400 flex items-center gap-1"><Calendar size={12}/> {formatDate(action.dueDate)}</div>
+                                                {status !== 'concluida' && <button onClick={() => { updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'actions', action.id), { status: 'concluida' }); showToast("Concluído!"); }} className="text-gray-300 hover:text-emerald-500 transition-colors p-1"><CheckSquare size={18}/></button>}
+                                            </div>
+                                    </div>
+                                    </div>
+                                ))}
+                                {myActions.filter(a => a.status === status).length === 0 && <div className="text-center text-gray-400 text-xs py-10 italic">Nenhuma ação nesta etapa</div>}
+                            </div>
+                            </div>
+                        );
+                    })}
                     </div>
-                    {isModalOpen && <ActionFormModal onClose={() => setIsModalOpen(false)} db={db} appId={appId} user={user} companies={companies} showToast={showToast} />}
+                    {isModalOpen && <ActionFormModal onClose={() => setIsModalOpen(false)} db={db} appId={appId} user={userProfile} companies={companies} showToast={showToast} />}
                 </div>
             );
         }
 
-        // --- COMPANY LIST ---
         function CompanyList({ companies, db, appId, showToast, userProfile }) {
             const [isModalOpen, setIsModalOpen] = useState(false);
             const [formData, setFormData] = useState({ name: '', city: '', state: '', segment: '' });
@@ -1293,51 +1409,54 @@
 
             return (
                 <div className="space-y-6">
-                    <div className="flex justify-between items-center">
-                        <div><h2 className="text-2xl font-bold text-gray-800">Carteira de Clientes</h2><p className="text-sm text-gray-500">Gerenciamento de base de empresas.</p></div>
-                        <Button onClick={() => setIsModalOpen(true)} icon={Plus}>Nova Empresa</Button>
+                <div className="flex justify-between items-center">
+                    <div><h2 className="text-2xl font-bold text-gray-800">Carteira de Clientes</h2><p className="text-sm text-gray-500">Gerenciamento de base de empresas.</p></div>
+                    <Button onClick={() => setIsModalOpen(true)} icon={Plus}>Nova Empresa</Button>
+                </div>
+
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="hidden md:grid grid-cols-12 gap-4 p-4 bg-gray-50 border-b border-gray-200 text-xs font-bold text-gray-500 uppercase tracking-wider">
+                        <div className="col-span-4">Empresa / Lead</div><div className="col-span-3">Localização</div><div className="col-span-3">Última Interação</div><div className="col-span-2 text-right">Executivo</div>
                     </div>
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="hidden md:grid grid-cols-12 gap-4 p-4 bg-gray-50 border-b border-gray-200 text-xs font-bold text-gray-500 uppercase tracking-wider">
-                            <div className="col-span-4">Empresa / Lead</div><div className="col-span-3">Localização</div><div className="col-span-3">Última Interação</div><div className="col-span-2 text-right">Executivo</div>
-                        </div>
-                        <div className="divide-y divide-gray-100">
-                            {companies.map((company) => (
-                                <div key={company.id} className="p-4 md:grid md:grid-cols-12 gap-4 items-center hover:bg-gray-50 transition-colors">
-                                    <div className="col-span-4 flex items-center gap-3 mb-2 md:mb-0">
-                                        <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">{company.name.charAt(0)}</div>
-                                        <div><h3 className="font-bold text-gray-800">{company.name}</h3><p className="text-xs text-gray-500 md:hidden">{company.city} - {company.state}</p></div>
-                                    </div>
-                                    <div className="col-span-3 text-sm text-gray-600 hidden md:block">{company.city} - {company.state}{company.segment === 'Prospect/Lead' && <span className="ml-2 bg-blue-100 text-blue-700 text-[10px] px-2 py-0.5 rounded">Lead</span>}</div>
-                                    <div className="col-span-3 text-xs hidden md:block">
-                                        {company.lastVisitDate ? (
-                                            <div><div className="flex items-center gap-1.5 font-medium mb-1">{company.lastVisitOutcome === 'Sucesso' ? <CheckCircle2 size={14} className="text-emerald-500"/> : <AlertTriangle size={14} className="text-amber-500"/>}{formatDate(company.lastVisitDate)}</div><p className="text-gray-500 truncate">{company.lastVisitNextSteps || 'Sem próximos passos'}</p></div>
-                                        ) : <span className="text-gray-400 italic">Nenhuma visita registrada</span>}
-                                    </div>
-                                    <div className="col-span-2 text-right text-xs text-gray-500 hidden md:flex justify-end items-center gap-2"><UserCircle size={16} className="text-gray-400"/><span className="truncate max-w-[120px] font-medium">{company.lastVisitUserName || company.createdByUserName || 'Sistema'}</span></div>
+                    <div className="divide-y divide-gray-100">
+                        {companies.map((company) => (
+                            <div key={company.id} className="p-4 md:grid md:grid-cols-12 gap-4 items-center hover:bg-gray-50 transition-colors group">
+                                <div className="col-span-4 flex items-center gap-3 mb-2 md:mb-0">
+                                    <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">{company.name.charAt(0)}</div>
+                                    <div><h3 className="font-bold text-gray-800">{company.name}</h3><p className="text-xs text-gray-500 md:hidden">{company.city} - {company.state}</p>{company.segment === 'Prospect/Lead' && <span className="md:hidden mt-1 inline-block bg-blue-100 text-blue-700 text-[10px] px-2 py-0.5 rounded">Lead</span>}</div>
                                 </div>
-                            ))}
-                        </div>
-                        {companies.length === 0 && <div className="p-12 text-center text-gray-400">Nenhuma empresa cadastrada.</div>}
-                    </div>
-                    {isModalOpen && (
-                        <Modal title="Nova Empresa" onClose={() => setIsModalOpen(false)} footer={<Button onClick={handleSubmit} className="w-full">Cadastrar</Button>}>
-                            <div className="space-y-4">
-                                <Input label="Razão Social / Nome" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
-                                <div className="grid grid-cols-2 gap-4">
-                                    <Input label="Cidade" value={formData.city} onChange={e => setFormData({...formData, city: e.target.value})} />
-                                    <Input label="Estado" value={formData.state} onChange={e => setFormData({...formData, state: e.target.value})} placeholder="UF" />
+                                <div className="col-span-3 text-sm text-gray-600 hidden md:block">{company.city} - {company.state}{company.segment === 'Prospect/Lead' && <span className="ml-2 bg-blue-100 text-blue-700 text-[10px] px-2 py-0.5 rounded">Lead</span>}</div>
+                                <div className="col-span-3 text-xs hidden md:block">
+                                    {company.lastVisitDate ? (
+                                        <div>
+                                            <div className="flex items-center gap-1.5 font-medium mb-1">{company.lastVisitOutcome === 'Sucesso' ? <CheckCircle2 size={14} className="text-emerald-500"/> : <AlertTriangle size={14} className="text-amber-500"/>}{formatDate(company.lastVisitDate)}</div>
+                                            <p className="text-gray-500 truncate" title={company.lastVisitNextSteps}>{company.lastVisitNextSteps || 'Sem próximos passos'}</p>
+                                        </div>
+                                    ) : <span className="text-gray-400 italic">Nenhuma visita registrada</span>}
                                 </div>
-                                <Input label="Segmento" value={formData.segment} onChange={e => setFormData({...formData, segment: e.target.value})} placeholder="Ex: Grãos, Revenda..." />
+                                <div className="col-span-2 text-right text-xs text-gray-500 hidden md:flex justify-end items-center gap-2"><UserCircle size={16} className="text-gray-400"/><span className="truncate max-w-[120px] font-medium" title={company.lastVisitUserName || company.createdByUserName || 'Sistema'}>{company.lastVisitUserName || company.createdByUserName || 'Sistema'}</span></div>
                             </div>
-                        </Modal>
-                    )}
+                        ))}
+                    </div>
+                    {companies.length === 0 && <div className="p-12 text-center text-gray-400">Nenhuma empresa cadastrada.</div>}
+                </div>
+
+                {isModalOpen && (
+                    <Modal title="Nova Empresa" onClose={() => setIsModalOpen(false)} footer={<Button onClick={handleSubmit} className="w-full">Cadastrar</Button>}>
+                        <div className="space-y-4">
+                            <Input label="Razão Social / Nome" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+                            <div className="grid grid-cols-2 gap-4"><Input label="Cidade" value={formData.city} onChange={e => setFormData({...formData, city: e.target.value})} /><Input label="Estado" value={formData.state} onChange={e => setFormData({...formData, state: e.target.value})} placeholder="UF" /></div>
+                            <Input label="Segmento" value={formData.segment} onChange={e => setFormData({...formData, segment: e.target.value})} placeholder="Ex: Grãos, Revenda..." />
+                        </div>
+                    </Modal>
+                )}
                 </div>
             );
         }
 
         // --- RENDER ---
-        const root = createRoot(document.getElementById('root'));
+        const rootElement = document.getElementById('root');
+        const root = createRoot(rootElement);
         root.render(<App />);
     </script>
 </body>
