@@ -244,14 +244,13 @@
                         });
                         setView('dashboard');
                     } else {
-                        // Perfil não cadastrado no Firestore
                         await signOut(auth);
-                        alert("Usuário não cadastrado no sistema. Contate o administrador da Fotus Agro.");
+                        showToast("Usuário não cadastrado no sistema. Contate o administrador da Fotus Agro.", 'error');
                     }
                 } catch(e) {
                     console.error("Erro ao buscar perfil", e);
                     await signOut(auth);
-                    alert("Erro ao carregar perfil. Verifique a conexão e tente novamente.");
+                    showToast("Erro ao carregar perfil. Verifique a conexão e tente novamente.", 'error');
                 }
                 setLoading(false);
             };
@@ -737,7 +736,7 @@
                 )}
                 {rejectingExp && (
                     <RejectExpeditionModal onClose={() => setRejectingExp(null)} onConfirm={async (reason) => {
-                        if(!reason) return alert("Informe o motivo da reprovação.");
+                        if(!reason) { showToast("Informe o motivo da reprovação.", 'error'); return; }
                         await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'expeditions', rejectingExp.id), { status: 'devolvida', rejectionReason: reason });
                         showToast("Expedição devolvida para ajustes.", "error");
                         setRejectingExp(null);
@@ -770,8 +769,8 @@
             const removeLead = (routeId, leadId) => setRoutes(routes.map(r => r.id === routeId ? { ...r, leads: r.leads.filter(l => l.id !== leadId) } : r));
 
             const handleSubmit = async () => {
-                if (!formData.title || !formData.startDate) return alert("Preencha o título e as datas obrigatórias.");
-                if (totalLeads === 0) return alert("Adicione pelo menos um lead em alguma rota.");
+                if (!formData.title || !formData.startDate) { showToast("Preencha o título e as datas obrigatórias.", 'error'); return; }
+                if (totalLeads === 0) { showToast("Adicione pelo menos um lead em alguma rota.", 'error'); return; }
                 
                 setIsSubmitting(true);
                 try {
@@ -822,7 +821,7 @@
                 await batch.commit();
                 showToast("Expedição enviada para aprovação!");
                 onClose();
-                } catch (err) { alert("Erro ao enviar: " + err.message); } finally { setIsSubmitting(false); }
+                } catch (err) { showToast("Erro ao enviar expedição: " + err.message, 'error'); } finally { setIsSubmitting(false); }
             };
 
             return (
@@ -945,7 +944,7 @@
                     setVisits(data);
                     
                     const initialFeedback = {};
-                    data.forEach(v => { initialFeedback[v.id] = { objectiveMet: true, nextSteps: '', createAction: false }; });
+                    data.forEach(v => { initialFeedback[v.id] = { objectiveMet: true, nextSteps: '', createAction: false, occurred: v.status !== 'nao_ocorreu' }; });
                     setVisitFeedback(initialFeedback);
                     setLoading(false);
                 };
@@ -964,8 +963,8 @@
                     for (const visit of visits) {
                         const feedback = visitFeedback[visit.id];
                         const visitRef = doc(db, 'artifacts', appId, 'public', 'data', 'visits', visit.id);
-                        // Preserva o status registrado em campo; só converte 'planejada' (não visitada) para 'realizada' no fechamento
-                        const finalStatus = visit.status === 'planejada' ? 'realizada' : visit.status;
+                        // Usa o campo 'occurred' que o usuário preencheu explicitamente no formulário
+                        const finalStatus = !feedback.occurred ? 'nao_ocorreu' : 'realizada';
                         batch.update(visitRef, { status: finalStatus, objectiveMet: feedback.objectiveMet, notesPos: feedback.nextSteps });
 
                         if (visit.companyId) {
@@ -995,7 +994,7 @@
                     await batch.commit();
                     showToast("Relatório de Pós-Expedição salvo! Ações e empresas atualizadas.");
                     onClose();
-                } catch (err) { alert("Erro ao salvar fechamento: " + err.message); } finally { setIsSubmitting(false); }
+                } catch (err) { showToast("Erro ao salvar fechamento: " + err.message, 'error'); } finally { setIsSubmitting(false); }
             };
 
             if (loading) return <Modal title="Pós-Expedição" onClose={onClose}><div className="flex justify-center p-8"><Loader2 className="animate-spin text-emerald-600"/></div></Modal>;
@@ -1018,6 +1017,19 @@
                                         </div>
                                         
                                         <div className="mt-3 space-y-3">
+                                            <div className="flex items-center gap-4 pb-3 border-b border-gray-100">
+                                                <label className="text-xs font-medium text-gray-600 shrink-0">Visita ocorreu?</label>
+                                                <div className="flex items-center gap-4">
+                                                    <label className="flex items-center gap-1 text-sm cursor-pointer">
+                                                        <input type="radio" checked={visitFeedback[visit.id]?.occurred === true} onChange={() => updateVisitFb(visit.id, 'occurred', true)} className="text-emerald-600 focus:ring-emerald-500" /> Sim
+                                                    </label>
+                                                    <label className="flex items-center gap-1 text-sm cursor-pointer text-red-600">
+                                                        <input type="radio" checked={visitFeedback[visit.id]?.occurred === false} onChange={() => updateVisitFb(visit.id, 'occurred', false)} className="text-red-500 focus:ring-red-400" /> Não ocorreu
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            {visitFeedback[visit.id]?.occurred !== false && (
                                             <div className="flex items-center gap-4">
                                                 <label className="text-xs font-medium text-gray-600">Objetivo Cumprido?</label>
                                                 <div className="flex items-center gap-3">
@@ -1025,11 +1037,14 @@
                                                     <label className="flex items-center gap-1 text-sm cursor-pointer"><input type="radio" checked={visitFeedback[visit.id]?.objectiveMet === false} onChange={() => updateVisitFb(visit.id, 'objectiveMet', false)} className="text-red-500 focus:ring-red-500" /> Não</label>
                                                 </div>
                                             </div>
-                                            <div><input className="w-full p-2 border border-gray-300 rounded-md text-sm outline-none focus:border-emerald-500" placeholder="Descreva os próximos passos / acordos firmados..." value={visitFeedback[visit.id]?.nextSteps} onChange={e => updateVisitFb(visit.id, 'nextSteps', e.target.value)} /></div>
+                                            )}
+                                            <div><input className="w-full p-2 border border-gray-300 rounded-md text-sm outline-none focus:border-emerald-500" placeholder={visitFeedback[visit.id]?.occurred === false ? "Motivo / observações sobre o não comparecimento..." : "Descreva os próximos passos / acordos firmados..."} value={visitFeedback[visit.id]?.nextSteps} onChange={e => updateVisitFb(visit.id, 'nextSteps', e.target.value)} /></div>
+                                            {visitFeedback[visit.id]?.occurred !== false && (
                                             <div className="flex items-center gap-2 mt-2">
                                                 <input type="checkbox" id={`action-${visit.id}`} className="rounded text-emerald-600 w-4 h-4 cursor-pointer" checked={visitFeedback[visit.id]?.createAction} onChange={(e) => updateVisitFb(visit.id, 'createAction', e.target.checked)} />
                                                 <label htmlFor={`action-${visit.id}`} className="text-xs text-gray-600 font-medium cursor-pointer">Gerar Tarefa no Plano de Ação baseada nos próximos passos</label>
                                             </div>
+                                            )}
                                         </div>
                                     </div>
                                 ))}
@@ -1245,7 +1260,7 @@
                 {modalType === 'new_action' && <ActionFormModal onClose={() => setModalType(null)} db={db} appId={appId} user={userProfile} initialData={{ expeditionId: expedition.id }} companies={companies} showToast={showToast} />}
                 {isRejecting && (
                     <RejectExpeditionModal onClose={() => setIsRejecting(false)} onConfirm={async (reason) => {
-                        if(!reason) return alert("Informe o motivo da reprovação.");
+                        if(!reason) { showToast("Informe o motivo da reprovação.", 'error'); return; }
                         await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'expeditions', expedition.id), { status: 'devolvida', rejectionReason: reason });
                         showToast("Expedição devolvida para ajustes.", "error");
                         setIsRejecting(false);
@@ -1314,7 +1329,7 @@
             const [formData, setFormData] = useState({ title: '', description: '', priority: 'media', dueDate: '', companyId: initialData?.companyId || '', ...initialData });
 
             const handleSubmit = async () => {
-                if (!formData.title || !formData.companyId) return alert("Preencha título e empresa");
+                if (!formData.title || !formData.companyId) { showToast("Preencha o título e a empresa.", 'error'); return; }
                 const companyName = formData.companyName || companies.find(c => c.id === formData.companyId)?.name || 'Geral';
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'actions'), { ...formData, companyName, responsibleId: user?.uid || 'user', status: 'aberta', createdAt: serverTimestamp() });
                 showToast("Ação criada com sucesso!");
@@ -1400,7 +1415,7 @@
             const [formData, setFormData] = useState({ name: '', city: '', state: '', segment: '' });
 
             const handleSubmit = async () => {
-                if (!formData.name) return alert("Nome é obrigatório");
+                if (!formData.name) { showToast("Nome da empresa é obrigatório.", 'error'); return; }
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'companies'), { ...formData, createdByUserName: userProfile?.name || 'Sistema', createdAt: serverTimestamp() });
                 showToast("Empresa cadastrada!");
                 setIsModalOpen(false);
