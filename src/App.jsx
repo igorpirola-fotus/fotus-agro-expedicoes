@@ -142,14 +142,6 @@ export default function App() {
 
   return (
     <div className="flex h-screen bg-gray-50 text-slate-800 font-sans overflow-hidden">
-      {/* Debug error banner */}
-      {dataError && (
-        <div className="fixed bottom-4 left-4 right-4 md:left-72 z-[200] bg-red-600 text-white text-xs p-3 rounded-lg shadow-xl font-mono break-all">
-          <strong>⚠ Erro Firestore:</strong> {dataError}
-          <br /><span className="opacity-80">Path: {colPath('...')}</span>
-        </div>
-      )}
-
       {/* Toast */}
       {notification && (
         <div className={`fixed top-4 right-4 z-[100] px-4 py-3 rounded-lg shadow-lg text-white text-sm font-medium flex items-center gap-2 ${notification.type === 'error' ? 'bg-red-500' : 'bg-emerald-600'}`}>

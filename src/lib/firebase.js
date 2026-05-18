@@ -18,9 +18,8 @@ export const auth = getAuth(app)
 export const db = getFirestore(app)
 export const storage = getStorage(app)
 
-// Dados salvos em: artifacts/expedicao-fotus-agro/public/data/{colecao}
-const DATA_ROOT = 'artifacts/expedicao-fotus-agro/public/data'
-export const colPath = (col) => `${DATA_ROOT}/${col}`
+// Dados salvos nas coleções raiz do Firestore
+export const colPath = (col) => col
 
 // Prefixo para Storage (uploads de arquivos)
 export const storagePrefixo = 'expedicao-fotus-agro'
