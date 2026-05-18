@@ -7,7 +7,7 @@ import {
 } from 'firebase/firestore'
 import {
   Truck, CheckSquare, Briefcase, LayoutDashboard, Menu, X,
-  LogOut, Loader2, CheckCircle2, AlertTriangle,
+  LogOut, Loader2, CheckCircle2, AlertTriangle, BarChart3, Users,
 } from 'lucide-react'
 import { auth, db, colPath } from './lib/firebase.js'
 import LoginScreen from './components/LoginScreen.jsx'
@@ -17,6 +17,8 @@ import ExpeditionList from './components/ExpeditionList.jsx'
 import ExpeditionDetail from './components/ExpeditionDetail.jsx'
 import ActionPlanGlobal from './components/ActionPlanGlobal.jsx'
 import CompanyList from './components/CompanyList.jsx'
+import Analytics from './components/Analytics.jsx'
+import Equipe from './components/Equipe.jsx'
 
 export default function App() {
   const [user, setUser] = useState(null)
@@ -138,6 +140,8 @@ export default function App() {
     { id: 'expeditions', icon: Truck, label: 'Expedições' },
     { id: 'actions', icon: CheckSquare, label: 'Plano de Ação' },
     { id: 'companies', icon: Briefcase, label: 'Empresas' },
+    { id: 'analytics', icon: BarChart3, label: 'Analytics' },
+    { id: 'equipe', icon: Users, label: 'Equipe' },
   ]
 
   return (
@@ -231,6 +235,12 @@ export default function App() {
           )}
           {view === 'companies' && (
             <CompanyList companies={companies} showToast={showToast} userProfile={userProfile} />
+          )}
+          {view === 'analytics' && (
+            <Analytics expeditions={expeditions} actions={actions} companies={companies} visits={visits} />
+          )}
+          {view === 'equipe' && (
+            <Equipe userProfile={userProfile} showToast={showToast} />
           )}
         </main>
       </div>
