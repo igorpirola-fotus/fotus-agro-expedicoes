@@ -18,8 +18,9 @@ export const auth = getAuth(app)
 export const db = getFirestore(app)
 export const storage = getStorage(app)
 
-// Coleções Firestore na raiz (alinhado com o app do Vercel/GitHub)
-export const colPath = (col) => col
+// Dados salvos em: artifacts/expedicao-fotus-agro/public/data/{colecao}
+const DATA_ROOT = 'artifacts/expedicao-fotus-agro/public/data'
+export const colPath = (col) => `${DATA_ROOT}/${col}`
 
 // Prefixo para Storage (uploads de arquivos)
-export const storagePrefixo = 'fotus-agro'
+export const storagePrefixo = 'expedicao-fotus-agro'
