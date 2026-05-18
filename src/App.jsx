@@ -78,18 +78,37 @@ export default function App() {
     setLoading(false)
   }
 
+  const [dataError, setDataError] = useState(null)
+
   // Realtime data
   useEffect(() => {
     if (!user) return
 
+    const handleErr = (col) => (err) => {
+      console.error(`[Firestore] ${col} error:`, err.code, err.message)
+      setDataError(`${col}: ${err.code} — ${err.message}`)
+    }
+
     const unsubExp = onSnapshot(
       query(collection(db, colPath('expeditions')), orderBy('createdAt', 'desc')),
-      snap => setExpeditions(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
-      err => console.warn('Expeditions index needed:', err.message),
+      snap => { setDataError(null); setExpeditions(snap.docs.map(d => ({ id: d.id, ...d.data() }))) },
+      handleErr('expeditions'),
     )
-    const unsubComp = onSnapshot(collection(db, colPath('companies')), snap => setCompanies(snap.docs.map(d => ({ id: d.id, ...d.data() }))))
-    const unsubAct = onSnapshot(collection(db, colPath('actions')), snap => setActions(snap.docs.map(d => ({ id: d.id, ...d.data() }))))
-    const unsubVis = onSnapshot(collection(db, colPath('visits')), snap => setVisits(snap.docs.map(d => ({ id: d.id, ...d.data() }))))
+    const unsubComp = onSnapshot(
+      collection(db, colPath('companies')),
+      snap => setCompanies(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
+      handleErr('companies'),
+    )
+    const unsubAct = onSnapshot(
+      collection(db, colPath('actions')),
+      snap => setActions(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
+      handleErr('actions'),
+    )
+    const unsubVis = onSnapshot(
+      collection(db, colPath('visits')),
+      snap => setVisits(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
+      handleErr('visits'),
+    )
 
     return () => { unsubExp(); unsubComp(); unsubAct(); unsubVis() }
   }, [user])
@@ -123,6 +142,14 @@ export default function App() {
 
   return (
     <div className="flex h-screen bg-gray-50 text-slate-800 font-sans overflow-hidden">
+      {/* Debug error banner */}
+      {dataError && (
+        <div className="fixed bottom-4 left-4 right-4 md:left-72 z-[200] bg-red-600 text-white text-xs p-3 rounded-lg shadow-xl font-mono break-all">
+          <strong>⚠ Erro Firestore:</strong> {dataError}
+          <br /><span className="opacity-80">Path: {colPath('...')}</span>
+        </div>
+      )}
+
       {/* Toast */}
       {notification && (
         <div className={`fixed top-4 right-4 z-[100] px-4 py-3 rounded-lg shadow-lg text-white text-sm font-medium flex items-center gap-2 ${notification.type === 'error' ? 'bg-red-500' : 'bg-emerald-600'}`}>
